@@ -52,6 +52,7 @@
 		1AAEA7AE2DFD608E00D65180 /* Exceptions for "LocalPackages" folder in "ShopAppUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				LocationService,
 				Utility,
 			);
 			target = 1AFE27752DFD58A800BE011E /* ShopAppUITests */;
