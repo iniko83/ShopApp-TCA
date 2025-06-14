@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1AAEA7632DFD5D1900D65180 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 1AAEA7622DFD5D1900D65180 /* ComposableArchitecture */; };
+		1AE247F92DFD664900491568 /* Utility in Frameworks */ = {isa = PBXBuildFile; productRef = 1AE247F82DFD664900491568 /* Utility */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,13 @@
 			);
 			target = 1AFE27752DFD58A800BE011E /* ShopAppUITests */;
 		};
+		1AAEA7AE2DFD608E00D65180 /* Exceptions for "LocalPackages" folder in "ShopAppUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Utility,
+			);
+			target = 1AFE27752DFD58A800BE011E /* ShopAppUITests */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -58,6 +66,14 @@
 				1A8B687E2DFD597100D395E4 /* Exceptions for "Resources" folder in "ShopAppUITests" target */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		1AAEA7AA2DFD5FDD00D65180 /* LocalPackages */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1AAEA7AE2DFD608E00D65180 /* Exceptions for "LocalPackages" folder in "ShopAppUITests" target */,
+			);
+			path = LocalPackages;
 			sourceTree = "<group>";
 		};
 		1AFE27602DFD58A700BE011E /* Source */ = {
@@ -83,6 +99,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1AAEA7632DFD5D1900D65180 /* ComposableArchitecture in Frameworks */,
+				1AE247F92DFD664900491568 /* Utility in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,13 +120,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1AE247F72DFD664900491568 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		1AFE27552DFD58A700BE011E = {
 			isa = PBXGroup;
 			children = (
+				1AAEA7AA2DFD5FDD00D65180 /* LocalPackages */,
 				1AFE27602DFD58A700BE011E /* Source */,
 				1A8B687C2DFD595600D395E4 /* Resources */,
 				1AFE276F2DFD58A800BE011E /* ShopAppTests */,
 				1AFE27792DFD58A800BE011E /* ShopAppUITests */,
+				1AE247F72DFD664900491568 /* Frameworks */,
 				1AFE275F2DFD58A700BE011E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -145,6 +171,7 @@
 			name = ShopApp;
 			packageProductDependencies = (
 				1AAEA7622DFD5D1900D65180 /* ComposableArchitecture */,
+				1AE247F82DFD664900491568 /* Utility */,
 			);
 			productName = ShopApp;
 			productReference = 1AFE275E2DFD58A700BE011E /* ShopApp.app */;
@@ -188,6 +215,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				1A8B687C2DFD595600D395E4 /* Resources */,
+				1AAEA7AA2DFD5FDD00D65180 /* LocalPackages */,
 				1AFE27792DFD58A800BE011E /* ShopAppUITests */,
 			);
 			name = ShopAppUITests;
@@ -649,6 +677,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1AAEA7612DFD5D1900D65180 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
 			productName = ComposableArchitecture;
+		};
+		1AE247F82DFD664900491568 /* Utility */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Utility;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
