@@ -43,6 +43,31 @@ extension Color {
 }
 
 extension Color {
+  // Based on: https://tanaschita.com/swiftui-dynamic-colors/
+  // NOTE: Color func resolve(in:) used outside standard behavior.
+  public static func dynamic(dark: UIColor, light: UIColor) -> Color {
+    let uiColor = UIColor { traitCollection -> UIColor in
+      return traitCollection.userInterfaceStyle == .dark ? dark : light
+    }
+    return Color(uiColor)
+  }
+  
+  public static func dynamicRgbaHex(dark: UInt, light: UInt) -> Color {
+    dynamic(
+      dark: .init(rgbaHex: dark),
+      light: .init(rgbaHex: light)
+    )
+  }
+  
+  public static func dynamicRgbHex(dark: UInt, light: UInt) -> Color {
+    dynamic(
+      dark: .init(rgbHex: dark),
+      light: .init(rgbHex: light)
+    )
+  }
+}
+
+extension Color {
   // Based on: https://stackoverflow.com/a/71689567
   public func adjust(
     hue: Double = 0,
