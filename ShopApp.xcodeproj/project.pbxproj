@@ -53,6 +53,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				LocationService,
+				NetworkClient,
+				RestClient,
 				Utility,
 			);
 			target = 1AFE27752DFD58A800BE011E /* ShopAppUITests */;
