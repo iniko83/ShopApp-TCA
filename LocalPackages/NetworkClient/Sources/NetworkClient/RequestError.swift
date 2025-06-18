@@ -10,14 +10,14 @@ import RestClient
 
 /* Удобная версия ошибки для последующего использования на соответствующих экранах. */
 
-extension RequestError {
-  public static let connectionLost = Self(type: .connectionLost)
-  public static let decoding = Self(type: .decoding)
-  public static let requestFailed = Self(type: .requestFailed)
-  public static let unauthorizedUser = Self(type: .unauthorizedUser)
-  public static let unknown = Self(type: .unknown)
-  public static let updateApplication = Self(type: .updateApplication)
-  public static let wrongUrl = Self(type: .wrongUrl)
+public extension RequestError {
+  static let connectionLost = Self(type: .connectionLost)
+  static let decoding = Self(type: .decoding)
+  static let requestFailed = Self(type: .requestFailed)
+  static let unauthorizedUser = Self(type: .unauthorizedUser)
+  static let unknown = Self(type: .unknown)
+  static let updateApplication = Self(type: .updateApplication)
+  static let wrongUrl = Self(type: .wrongUrl)
 }
 
 public struct RequestError: Error, Equatable {

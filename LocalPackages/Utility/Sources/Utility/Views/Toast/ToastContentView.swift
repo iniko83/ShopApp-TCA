@@ -48,8 +48,8 @@ public struct ToastContentView: View {
       .init(name: "warning", style: .warning)
     ]
     
-    @State var isDarkTheme = false
-    @State var items = Self.initialItems
+    @State private var isDarkTheme = false
+    @State private var items = Self.initialItems
     
     var body: some View {
       let isCanResetItems = items.count < Self.initialItems.count

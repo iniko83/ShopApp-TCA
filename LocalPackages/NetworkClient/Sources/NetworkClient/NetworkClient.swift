@@ -39,8 +39,8 @@ public actor NetworkClient {
   }
 }
 
-extension NetworkClient {
-  public static let defaultConfiguration: URLSessionConfiguration = {
+public extension NetworkClient {
+  static let defaultConfiguration: URLSessionConfiguration = {
     let result = URLSessionConfiguration.default
     result.httpAdditionalHeaders = ["AppVersion": String.appVersion]
     result.requestCachePolicy = .reloadRevalidatingCacheData
@@ -49,7 +49,7 @@ extension NetworkClient {
     return result
   }()
   
-  public static let defaultSession = URLSession(configuration: defaultConfiguration)
+  static let defaultSession = URLSession(configuration: defaultConfiguration)
 }
 
 

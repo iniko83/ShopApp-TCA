@@ -44,9 +44,14 @@ public struct CitySelectionView: View {
           .opacity(0.5)
         
       case let .error(error):
-        // FIXME: добавить error view
-        Text("Не удалось загрузить список городов.")
-          .padding()
+        RequestErrorView(
+          configuration: .init(
+            error: error,
+            message: "Не удалось загрузить список городов."
+          ),
+          retryAction: { store.send(.tapRequestCities) }
+        )
+        .padding()
       }
     }
     .onAppear {

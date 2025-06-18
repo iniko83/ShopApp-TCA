@@ -8,8 +8,8 @@
 import SwiftUI
 import Utility
 
-extension Color {
-  public static let citySelection = Color.dynamicRgbHex(dark: 0xe3546d, light: 0xf8395a)
+public extension Color {
+  static let citySelection = Color.mainAccent
 }
 
 /// Preview support

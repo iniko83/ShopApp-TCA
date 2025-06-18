@@ -20,3 +20,21 @@ extension View {
     }
   }
 }
+
+
+/// Others
+extension View {
+  @ViewBuilder public func iconSymbolEffect() -> some View {
+    if #available(iOS 18, *) {
+      self.symbolEffect(
+        .wiggle,
+        options: .repeat(.periodic(nil, delay: 5)).speed(0.7),
+        isActive: true
+      )
+    } else if #available(iOS 17, *) {
+      self.symbolEffect(.pulse, options: .repeating, isActive: true)
+    } else {
+      self
+    }
+  }
+}
