@@ -51,6 +51,13 @@
 			);
 			target = 1AFE27752DFD58A800BE011E /* ShopAppUITests */;
 		};
+		1AA44A7E2E02BEDF00671873 /* Exceptions for "ResourcesOnline" folder in "ShopAppUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				cities.json,
+			);
+			target = 1AFE27752DFD58A800BE011E /* ShopAppUITests */;
+		};
 		1AAEA7AE2DFD608E00D65180 /* Exceptions for "LocalPackages" folder in "ShopAppUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -72,6 +79,14 @@
 				1A8B687E2DFD597100D395E4 /* Exceptions for "Resources" folder in "ShopAppUITests" target */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		1AA44A792E02BD2100671873 /* ResourcesOnline */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1AA44A7E2E02BEDF00671873 /* Exceptions for "ResourcesOnline" folder in "ShopAppUITests" target */,
+			);
+			path = ResourcesOnline;
 			sourceTree = "<group>";
 		};
 		1AAEA7AA2DFD5FDD00D65180 /* LocalPackages */ = {
@@ -141,6 +156,7 @@
 				1AAEA7AA2DFD5FDD00D65180 /* LocalPackages */,
 				1AFE27602DFD58A700BE011E /* Source */,
 				1A8B687C2DFD595600D395E4 /* Resources */,
+				1AA44A792E02BD2100671873 /* ResourcesOnline */,
 				1AFE276F2DFD58A800BE011E /* ShopAppTests */,
 				1AFE27792DFD58A800BE011E /* ShopAppUITests */,
 				1AE247F72DFD664900491568 /* Frameworks */,
@@ -225,6 +241,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				1A8B687C2DFD595600D395E4 /* Resources */,
+				1AA44A792E02BD2100671873 /* ResourcesOnline */,
 				1AAEA7AA2DFD5FDD00D65180 /* LocalPackages */,
 				1AFE27792DFD58A800BE011E /* ShopAppUITests */,
 			);
