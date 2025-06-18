@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum RestAuthorizationType: Int {
+public enum RestAuthorizationType: Int, Sendable {
   case bearer
   
   public init() {

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum HttpMethod {
+public enum HttpMethod: Int, Sendable {
   case get
   case post
   case put

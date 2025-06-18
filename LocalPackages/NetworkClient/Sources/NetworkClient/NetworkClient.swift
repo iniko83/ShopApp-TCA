@@ -6,7 +6,7 @@ import RestClient
 
 public typealias RequestResult<T> = Result<T, RequestError>
 
-public final class NetworkClient {
+public actor NetworkClient {
   @Binding var authorizationToken: String?
   
   private let client: RestClient
@@ -17,6 +17,12 @@ public final class NetworkClient {
   ) {
     _authorizationToken = authorizationToken
     self.client = client
+  }
+  
+  public func request<Object: Decodable, Request: RestRequestConvertible>(
+    _ request: Request
+  ) async -> RequestResult<Object> {
+    await self.request(request.restRequest())
   }
   
   public func request<Object: Decodable>(_ request: RestRequest) async -> RequestResult<Object> {

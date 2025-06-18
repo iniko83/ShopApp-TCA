@@ -3,7 +3,7 @@
 
 import Foundation
 
-public final class RestClient {
+public final class RestClient: Sendable {
   private let authorizationType: RestAuthorizationType
   private let baseUrl: URL
   private let session: URLSession
@@ -11,7 +11,7 @@ public final class RestClient {
   public init(
     authorizationType: RestAuthorizationType = .init(),
     baseUrl: URL,
-    session: URLSession
+    session: URLSession = .shared
   ) {
     self.authorizationType = authorizationType
     self.baseUrl = baseUrl

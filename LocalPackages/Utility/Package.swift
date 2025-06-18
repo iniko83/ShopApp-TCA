@@ -12,8 +12,16 @@ let package = Package(
       targets: ["Utility"]
     ),
   ],
+  dependencies: [
+    .package(path: "../NetworkClient"),
+  ],
   targets: [
-    .target(name: "Utility"),
+    .target(
+      name: "Utility",
+      dependencies: [
+        .product(name: "NetworkClient", package: "NetworkClient"),
+      ]
+    ),
     .testTarget(
       name: "UtilityTests",
       dependencies: ["Utility"]

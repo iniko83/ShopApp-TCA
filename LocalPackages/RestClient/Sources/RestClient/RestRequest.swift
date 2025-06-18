@@ -11,7 +11,7 @@ public protocol RestRequestConvertible {
   func restRequest() -> RestRequest
 }
 
-public struct RestRequest {
+public struct RestRequest: Sendable {
   let path: String
   let method: HttpMethod
   
@@ -24,7 +24,7 @@ public struct RestRequest {
   
   let authorization: Authorization
   
-  init(
+  public init(
     path: String,
     method: HttpMethod = .get,
     headers: [String: String]? = nil,
@@ -43,7 +43,6 @@ public struct RestRequest {
     self.timeoutInterval = timeoutInterval
     self.authorization = authorization
   }
-  
   
   func buildUrlRequest(
     baseUrl: URL,
@@ -98,12 +97,12 @@ public struct RestRequest {
 }
 
 extension RestRequest {
-  public enum Authorization {
+  public enum Authorization: Int, Sendable {
     case any
     case required
     case unused
     
-    init() {
+    public init() {
       self = .any
     }
     
@@ -116,9 +115,9 @@ extension RestRequest {
     }
   }
   
-  public enum Parameters {
-    case body(Encodable)
-    case info([String: Encodable])
+  public enum Parameters: Sendable {
+    case body(Encodable & Sendable)
+    case info([String: Encodable & Sendable])
     
     fileprivate func httpBody() throws -> Data {
       let result: Data
@@ -132,8 +131,8 @@ extension RestRequest {
     }
   }
   
-  public enum UrlQuery {
-    case dictionary([String: CustomStringConvertible])
+  public enum UrlQuery: Sendable {
+    case dictionary([String: CustomStringConvertible & Sendable])
     case queryItems([URLQueryItem])
     
     fileprivate func items() -> [URLQueryItem] {

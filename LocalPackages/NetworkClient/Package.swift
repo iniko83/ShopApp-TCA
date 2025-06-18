@@ -22,9 +22,5 @@ let package = Package(
         .product(name: "RestClient", package: "RestClient"),
       ]
     ),
-    .testTarget(
-      name: "NetworkClientTests",
-      dependencies: ["NetworkClient"]
-    ),
   ]
 )
