@@ -16,8 +16,7 @@ extension CitySelectionRequest: RestRequestConvertible {
     let result: RestRequest
     switch self {
     case .cities:
-      // FIXME: insert path from github
-      result = .init(path: "/path")
+      result = .init(path: "/cities.json")
     }
     return result
   }

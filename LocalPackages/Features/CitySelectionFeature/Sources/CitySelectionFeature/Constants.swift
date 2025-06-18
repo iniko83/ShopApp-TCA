@@ -37,7 +37,7 @@ extension City {
   )
   
   static let blagoveshchensk = City(
-    id: 2,
+    id: 52,
     name: "Благовещенск",
     coordinate: Coordinate(latitude: 50.25778, longitude: 127.53639),
     size: .small,

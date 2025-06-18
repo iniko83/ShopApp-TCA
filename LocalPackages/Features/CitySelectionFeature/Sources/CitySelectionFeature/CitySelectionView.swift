@@ -14,6 +14,10 @@ import Utility
 public struct CitySelectionView: View {
   @Bindable public var store: StoreOf<CitySelectionFeature>
   
+  public init(store: StoreOf<CitySelectionFeature>) {
+    self.store = store
+  }
+  
   public var body: some View {
     ZStack {
       switch store.citiesRequestState {
@@ -25,6 +29,7 @@ public struct CitySelectionView: View {
               ForEach(store.state.cities, id: \.id) { city in
                 let isSelected = city.id == store.state.selectedCityId
                 CityContentView(city: city, isSelected: isSelected)
+                  .padding(EdgeInsets(horizontal: 16, vertical: 6))
               }
             }
           )

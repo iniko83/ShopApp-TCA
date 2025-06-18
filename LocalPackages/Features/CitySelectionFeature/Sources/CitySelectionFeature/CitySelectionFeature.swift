@@ -13,6 +13,8 @@ import Utility
 public struct CitySelectionFeature {
   @Dependency(\.citySelectionApi) var api: CitySelectionApi
   
+  public init() {}
+  
   @ObservableState
   public struct State: Equatable {
     public var selectedCityId: Int?
@@ -21,6 +23,8 @@ public struct CitySelectionFeature {
     
     // ignored
     var cities = [City]()
+    
+    public init() {}
    
     fileprivate func isNeedRequestCities() -> Bool {
       cities.isEmpty && citiesRequestState != .loading

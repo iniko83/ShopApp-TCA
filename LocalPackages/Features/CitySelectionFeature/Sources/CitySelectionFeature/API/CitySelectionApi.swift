@@ -48,7 +48,17 @@ extension CitySelectionApi: DependencyKey {
     )
     
     return .init(
-      loadCities: { await client.request(CitySelectionRequest.cities) }
+      loadCities: {
+        let citiesResult: RequestResult<Cities> = await client.request(CitySelectionRequest.cities)
+        let result: RequestResult<[City]>
+        switch citiesResult {
+        case let .success(cities):
+          result = .success(cities.list)
+        case let .failure(error):
+          result = .failure(error)
+        }
+        return result
+      }
     )
   }
 }
@@ -63,5 +73,6 @@ extension DependencyValues {
 
 /// Constants
 private extension URL {
-  static let baseUrl = URL(string: "https://github.com")!
+  // NOTE: how get path to raw file: https://stackoverflow.com/a/78631033
+  static let baseUrl = URL(string: "https://raw.githubusercontent.com/iniko83/ShopApp/develop/ResourcesOnline")!
 }
