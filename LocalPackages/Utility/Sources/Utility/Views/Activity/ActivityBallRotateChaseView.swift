@@ -23,24 +23,32 @@ struct ActivityBallRotateChaseView: View {
       let shiftFactor: CGFloat = -19/45
       let elementOffsetY = shiftFactor * side
       let finalOffsetY = -(shiftFactor + 0.4) * side
+      
+      let padding = EdgeInsets(
+        horizontal: 0.5 * (geometry.size.width - side),
+        vertical: 0.5 * (geometry.size.height - side)
+      )
     
-      ForEach(0 ..< 5) { index in
-        let itemAnimation = Animation
-          .timingCurve(0.5, 0.15 + 0.2 * Double(index), 0.25, 1, duration: 1.7)
-          .repeatForever(autoreverses: false)
-        
-        Group {
-          Circle()
-            .fill(.tint)
-            .frame(width: itemSide, height: itemSide)
-            .scaleEffect(calculateScale(index: index))
-            .offset(y: elementOffsetY)
+      Group {
+        ForEach(0 ..< 5) { index in
+          let itemAnimation = Animation
+            .timingCurve(0.5, 0.15 + 0.2 * Double(index), 0.25, 1, duration: 1.7)
+            .repeatForever(autoreverses: false)
+          
+          Group {
+            Circle()
+              .fill(.tint)
+              .frame(width: itemSide, height: itemSide)
+              .scaleEffect(calculateScale(index: index))
+              .offset(y: elementOffsetY)
+          }
+          .frame(width: side, height: side)
+          .rotationEffect(.degrees(isAnimating ? 360 : 0))
+          .animation(itemAnimation, value: isAnimating)
         }
-        .frame(width: side, height: side)
-        .rotationEffect(.degrees(isAnimating ? 360 : 0))
-        .animation(itemAnimation, value: isAnimating)
+        .offset(y: finalOffsetY)
       }
-      .offset(y: finalOffsetY)
+      .padding(padding)
     }
     .drawingGroup()
     .onAppear { isAnimating = true }

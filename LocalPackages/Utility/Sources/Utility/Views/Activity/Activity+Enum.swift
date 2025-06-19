@@ -12,18 +12,18 @@ public typealias ActivityStyle = Activity.Style
 public enum Activity {
   public enum Style {
     case ballRotateChase
-    case spinner(SpinnerConfiguration)
+    case spinner(configuration: SpinnerConfiguration)
     
     public init() {
       self = .ballRotateChase
     }
     
-    static func spinner(
+    public static func spinner(
       thickness: Double = 0.125,
       trackOpacity: Double = 0.2
     ) -> Self {
-      return .spinner(
-        SpinnerConfiguration(
+      .spinner(
+        configuration: SpinnerConfiguration(
           thickness: thickness,
           trackOpacity: trackOpacity
         )

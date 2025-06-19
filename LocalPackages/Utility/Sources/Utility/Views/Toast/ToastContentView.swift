@@ -60,7 +60,8 @@ public struct ToastContentView: View {
         if isCanResetItems {
           Button(
             action: { items = Self.initialItems },
-            label: { Text("Reset items")
+            label: {
+              Text("Reset items")
                 .foregroundStyle(.white)
             }
           )

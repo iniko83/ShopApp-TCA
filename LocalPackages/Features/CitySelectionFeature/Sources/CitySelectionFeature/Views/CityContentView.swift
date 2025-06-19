@@ -100,7 +100,7 @@ struct CityContentView: View, Identifiable {
                 city: city,
                 isSelected: isSelected
               )
-              .border(Color.blue.opacity(0.1))
+              .border(Color.blue.opacity(0.15))
             }
           }
         }

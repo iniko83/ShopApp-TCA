@@ -37,7 +37,7 @@ public struct RequestErrorView: View {
           let action = retryAction
         {
           Button(
-            action: { action() },
+            action: action,
             label: {
               Text(String.retry.uppercased())
                 .frame(maxWidth: .infinity)
@@ -149,6 +149,6 @@ extension RequestErrorView {
       message: "Текст сообщения"
     )
   )
-  .border(Color.blue.opacity(0.1))
+  .border(Color.blue.opacity(0.15))
   .padding()
 }

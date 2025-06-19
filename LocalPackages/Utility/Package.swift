@@ -13,12 +13,14 @@ let package = Package(
     ),
   ],
   dependencies: [
+    .package(path: "../LocationService"),
     .package(path: "../NetworkClient"),
   ],
   targets: [
     .target(
       name: "Utility",
       dependencies: [
+        .product(name: "LocationService", package: "LocationService"),
         .product(name: "NetworkClient", package: "NetworkClient"),
       ]
     ),

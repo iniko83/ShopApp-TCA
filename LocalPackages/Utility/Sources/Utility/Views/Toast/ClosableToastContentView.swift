@@ -30,7 +30,7 @@ public struct ClosableToastContentView<Content: View>: View {
       content()
       
       Button(
-        action: { onClose() },
+        action: onClose,
         label: {
           Image(systemName: "xmark")
             .resizable()

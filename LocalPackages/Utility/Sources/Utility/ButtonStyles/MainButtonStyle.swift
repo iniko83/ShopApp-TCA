@@ -16,9 +16,17 @@ public struct MainButtonStyle: ButtonStyle {
   @Environment(\.isEnabled) private var isEnabled: Bool
   
   private let style: Style
+  private let shape: Shape
+  private let contentPadding: EdgeInsets
   
-  public init(style: Style = .init()) {
+  public init(
+    style: Style = .init(),
+    shape: Shape = .roundedRectangle(radius: 8),
+    contentPadding: EdgeInsets = .buttonDefaultPadding
+  ) {
     self.style = style
+    self.shape = shape
+    self.contentPadding = contentPadding
   }
   
   public func makeBody(configuration: Configuration) -> some View {
@@ -28,12 +36,12 @@ public struct MainButtonStyle: ButtonStyle {
     let textOpacity: Double = isPressed ? 0.75 : 1
     
     return configuration.label
-      .padding(.buttonDefaultPadding)
+      .padding(contentPadding)
       .bold()
       .foregroundStyle(frontColor)
       .opacity(textOpacity)
       .background(backgroundColor)
-      .cornerRadius(8)
+      .mainButtonShape(shape)
       .scaleEffect(isPressed ? 0.995 : 1)
       .animation(.smooth, value: isPressed)
       .opacity(isEnabled ? 1 : 0.5)
@@ -79,6 +87,37 @@ extension MainButtonStyle {
     
     private func brightness(isPressed: Bool) -> Double {
       isPressed ? -0.1 : 0
+    }
+  }
+  
+  public enum Shape {
+    case capsule
+    case roundedRectangle(radius: CGFloat)
+  }
+}
+
+
+/// Shape ViewModifier
+private extension View {
+  func mainButtonShape(_ shape: MainButtonStyle.Shape) -> some View {
+    modifier(MainButtonShapeModifier(shape: shape))
+  }
+}
+
+private struct MainButtonShapeModifier: ViewModifier {
+  private let shape: MainButtonStyle.Shape
+  
+  init(shape: MainButtonStyle.Shape) {
+    self.shape = shape
+  }
+  
+  func body(content: Content) -> some View {
+    switch shape {
+    case .capsule:
+      content.clipShape(Capsule())
+      
+    case let .roundedRectangle(radius):
+      content.cornerRadius(radius)
     }
   }
 }
@@ -131,7 +170,9 @@ extension MainButtonStyle {
                 }
               )
               .disabled(isDisabled)
-              .buttonStyle(MainButtonStyle(style: item.style))
+              .buttonStyle(
+                MainButtonStyle(style: item.style, shape: .capsule)
+              )
               .padding(buttonPadding)
               .background(panelColor)
             }

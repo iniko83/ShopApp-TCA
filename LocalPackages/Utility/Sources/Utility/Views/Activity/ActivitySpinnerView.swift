@@ -33,7 +33,10 @@ struct ActivitySpinnerView: View {
       let lineWidth = configuration.thickness * side
       let circleSide = side - lineWidth
       let paddingSide = 0.5 * lineWidth
-      let padding = EdgeInsets(horizontal: paddingSide, vertical: paddingSide)
+      let padding = EdgeInsets(
+        horizontal: 0.5 * (geometry.size.width - side) + paddingSide,
+        vertical: 0.5 * (geometry.size.height - side) + paddingSide
+      )
       
       ZStack {
         Circle()

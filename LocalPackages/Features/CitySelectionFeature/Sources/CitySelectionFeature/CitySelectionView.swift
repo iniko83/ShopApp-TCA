@@ -22,20 +22,13 @@ public struct CitySelectionView: View {
     ZStack {
       switch store.citiesRequestState {
       case .default:
-        ScrollView {
-          LazyVStack(
-            spacing: 0,
-            content: {
-              ForEach(store.state.cities, id: \.id) { city in
-                let isSelected = city.id == store.state.selectedCityId
-                CityContentView(city: city, isSelected: isSelected)
-                  .padding(EdgeInsets(horizontal: 16, vertical: 6))
-              }
-            }
-          )
-          .animation(.smooth, value: store.state.cities)
-        }
-        .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
+        CityListView(
+          cities: store.state.cities,
+          selectedCityId: store.state.selectedCityId,
+          nearestCity: store.state.nearestCity,
+          userCoordinateRequestState: store.state.userCoordinateRequestState,
+          onAction: { store.send(.init(action: $0)) }
+        )
         
       case .loading:
         ActivityView(style: .ballRotateChase)
