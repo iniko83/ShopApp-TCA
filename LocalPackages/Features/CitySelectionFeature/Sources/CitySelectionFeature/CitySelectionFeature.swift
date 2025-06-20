@@ -90,6 +90,8 @@ public struct CitySelectionFeature {
 
     init(action: CityListView.Action) {
       switch action {
+      case let .selectCity(id):
+        self = .selectCity(id: id)
       case .tapDefineUserLocation:
         self = .tapDefineUserLocation
       }

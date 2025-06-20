@@ -12,7 +12,15 @@ let package = Package(
       targets: ["NetworkConnectionService"]
     ),
   ],
+  dependencies: [
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
+  ],
   targets: [
-    .target(name: "NetworkConnectionService"),
+    .target(
+      name: "NetworkConnectionService",
+      dependencies: [
+        .product(name: "Dependencies", package: "swift-dependencies"),
+      ]
+    ),
   ]
 )

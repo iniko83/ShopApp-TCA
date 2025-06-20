@@ -13,6 +13,7 @@ struct CityListView: View {
   private let selectedCityId: Int?
 
   private let nearestCity: City?
+  private let userCoordinate: Coordinate?
   private let userCoordinateRequestState: RequestLocationState
   
   private let onAction: (Action) -> Void
@@ -21,12 +22,14 @@ struct CityListView: View {
     cities: [City],
     selectedCityId: Int?,
     nearestCity: City?,
+    userCoordinate: Coordinate?,
     userCoordinateRequestState: RequestLocationState,
     onAction: @escaping (Action) -> Void
   ) {
     self.cities = cities
     self.selectedCityId = selectedCityId
     self.nearestCity = nearestCity
+    self.userCoordinate = userCoordinate
     self.userCoordinateRequestState = userCoordinateRequestState
     self.onAction = onAction
   }
@@ -34,16 +37,21 @@ struct CityListView: View {
   var body: some View {
     ZStack {
       ScrollView {
-        LazyVStack(
-          spacing: 0,
-          content: {
-            ForEach(cities, id: \.id) { city in
-              let isSelected = city.id == selectedCityId
-              CityContentView(city: city, isSelected: isSelected)
-                .padding(EdgeInsets(horizontal: 16, vertical: 6))
-            }
+        LazyVStack(spacing: 0) {
+          ForEach(cities, id: \.id) { city in
+            let isSelected = city.id == selectedCityId
+            
+            CityRowView(
+              data: CityRowData(
+                city: city,
+                isSelected: isSelected,
+                userCoordinate: userCoordinate
+              ),
+              onSelectId: { id in onAction(.selectCity(id: id)) }
+            )
+            .padding(EdgeInsets(horizontal: 16, vertical: 6))
           }
-        )
+        }
         .animation(.smooth, value: cities)
       }
       .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
@@ -67,6 +75,7 @@ struct CityListView: View {
 
 extension CityListView {
   enum Action {
+    case selectCity(id: Int)
     case tapDefineUserLocation
   }
 }

@@ -26,6 +26,7 @@ public struct CitySelectionView: View {
           cities: store.state.cities,
           selectedCityId: store.state.selectedCityId,
           nearestCity: store.state.nearestCity,
+          userCoordinate: store.state.userCoordinate,
           userCoordinateRequestState: store.state.userCoordinateRequestState,
           onAction: { store.send(.init(action: $0)) }
         )

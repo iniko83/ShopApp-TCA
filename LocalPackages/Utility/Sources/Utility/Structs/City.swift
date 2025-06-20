@@ -28,6 +28,11 @@ public struct City: Codable, Equatable, Identifiable, Sendable {
     self.size = size
     self.subject = subject
   }
+  
+  /// Equatable
+  public static func == (lhs: City, rhs: City) -> Bool {
+    lhs.id == rhs.id
+  }
 }
 
 public enum CitySize: Int, Codable, Sendable {
