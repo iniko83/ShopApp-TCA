@@ -8,13 +8,14 @@ import SwiftUI
 
 import LocationService
 import NetworkClient
+import NetworkConnectionService
 import Utility
 
-// FIXME: add network reconnection observer & autoreload on retryable requestError
 @Reducer
 public struct CitySelectionFeature {
   @Dependency(\.citySelectionApi) var api: CitySelectionApi
   @Dependency(\.locationService) var locationService: LocationService
+  @Dependency(\.networkConnectionService) var networkConnectionService
   
   public init() {}
   
@@ -75,6 +76,8 @@ public struct CitySelectionFeature {
   public enum Action {
     case changeLocationServiceAuthorizationStatus(CLAuthorizationStatus)
     
+    case networkAvailable
+    
     case onAppear
     
     case responseCities(RequestResult<[City]>)
@@ -104,6 +107,11 @@ public struct CitySelectionFeature {
           state.isWantUserCoordinate = false
         }
         
+      case .networkAvailable:
+        if state.citiesRequestState.isRetryableError() {
+          result = requestCitiesEffect(state: &state)
+        }
+        
       case .onAppear:
         let isStateUninitialized = !state.isInitialized
         if isStateUninitialized {
@@ -113,7 +121,10 @@ public struct CitySelectionFeature {
         
         var effects = [Effect<Action>]()
         if isStateUninitialized {
-          effects.append(locationServiceAuthorizationStatusStreamEffect())
+          effects += [
+            locationServiceAuthorizationStatusStreamEffect(),
+            networkAvailabilityStreamEffect()
+          ]
         }
         if state.isNeedRequestCities() {
           effects.append(requestCitiesEffect(state: &state))
@@ -168,6 +179,17 @@ public struct CitySelectionFeature {
     return .run { send in
       for await status in authorizationStatusStream() {
         await send(.changeLocationServiceAuthorizationStatus(status))
+      }
+    }
+  }
+  
+  private func networkAvailabilityStreamEffect() -> Effect<Action> {
+    let connectionStream = networkConnectionService.connectionStream
+    return .run { send in
+      for await isConnected in connectionStream(.cellularOrWifi) {
+        if isConnected {
+          await send(.networkAvailable)
+        }
       }
     }
   }

@@ -15,6 +15,11 @@ public enum RequestState: Equatable {
   public init() {
     self = .default
   }
+  
+  public func isRetryableError() -> Bool {
+    guard case let .error(error) = self else { return false }
+    return error.isRetryable()
+  }
 }
 
 public enum RequestListState: Equatable {
