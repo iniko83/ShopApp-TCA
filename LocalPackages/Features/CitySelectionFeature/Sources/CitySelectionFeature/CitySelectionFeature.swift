@@ -126,9 +126,9 @@ public struct CitySelectionFeature {
         
       case let .responseCities(response):
         switch response {
-        case let .success(value):
+        case let .success(cities):
           state.citiesRequestState = .default
-          state.cities = value
+          state.cities = cities
           
         case let .failure(error):
           state.citiesRequestState = .error(error)

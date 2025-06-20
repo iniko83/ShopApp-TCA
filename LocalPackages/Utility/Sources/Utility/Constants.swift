@@ -21,5 +21,8 @@ public extension EdgeInsets {
 }
 
 public extension String {
+  static let empty = ""
+  static let space = " "
+  
   static let retry = "Повторить"
 }
