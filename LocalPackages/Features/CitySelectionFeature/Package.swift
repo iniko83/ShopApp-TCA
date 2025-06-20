@@ -15,6 +15,7 @@ let package = Package(
   dependencies: [
     .package(path: "../../LocationService"),
     .package(path: "../../NetworkClient"),
+    .package(path: "../../NetworkConnectionService"),
     .package(path: "../../RestClient"),
     .package(path: "../../Utility"),
     .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
@@ -25,6 +26,7 @@ let package = Package(
       dependencies: [
         .product(name: "LocationService", package: "LocationService"),
         .product(name: "NetworkClient", package: "NetworkClient"),
+        .product(name: "NetworkConnectionService", package: "NetworkConnectionService"),
         .product(name: "RestClient", package: "RestClient"),
         .product(name: "Utility", package: "Utility"),
         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),

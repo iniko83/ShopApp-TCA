@@ -65,6 +65,7 @@
 				Features/CitySelectionFeature,
 				LocationService,
 				NetworkClient,
+				NetworkConnectionService,
 				RestClient,
 				Utility,
 			);

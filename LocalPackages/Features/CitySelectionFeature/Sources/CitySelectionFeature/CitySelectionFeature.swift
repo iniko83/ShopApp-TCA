@@ -10,6 +10,7 @@ import LocationService
 import NetworkClient
 import Utility
 
+// FIXME: add network reconnection observer & autoreload on retryable requestError
 @Reducer
 public struct CitySelectionFeature {
   @Dependency(\.citySelectionApi) var api: CitySelectionApi
