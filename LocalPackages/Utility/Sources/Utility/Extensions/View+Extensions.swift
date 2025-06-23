@@ -24,6 +24,34 @@ extension View {
 
 /// Others
 extension View {
+  @inlinable nonisolated public func frame(maxSquare: CGFloat) -> some View {
+    self.frame(maxWidth: maxSquare, maxHeight: maxSquare)
+  }
+  
+  @inlinable nonisolated public func frame(
+    square: CGFloat,
+    alignment: Alignment = .center
+  ) -> some View {
+    self.frame(
+      width: square,
+      height: square,
+      alignment: alignment
+    )
+  }
+  
+  @inlinable nonisolated public func frame(
+    size: CGSize,
+    alignment: Alignment = .center
+  ) -> some View {
+    self.frame(
+      width: size.width,
+      height: size.height,
+      alignment: alignment
+    )
+  }
+}
+
+extension View {
   @ViewBuilder public func iconSymbolEffect() -> some View {
     if #available(iOS 18, *) {
       self.symbolEffect(

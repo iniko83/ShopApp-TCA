@@ -22,8 +22,6 @@ struct ActivitySizeModifier: ViewModifier {
   
   func body(content: Content) -> some View {
     let side = size.side()
-    
-    content
-      .frame(width: side, height: side)
+    return content.frame(square: side)
   }
 }

@@ -50,7 +50,7 @@ struct ActivitySpinnerView: View {
           .rotationEffect(.degrees(isAnimated ? 360 : 0))
           .animation(.linear(duration: 1).speed(1.2).delay(1).repeatForever(autoreverses: false), value: isAnimated)
       }
-      .frame(width: circleSide, height: circleSide)
+      .frame(square: circleSide)
       .compositingGroup()
       .padding(padding)
     }
@@ -64,5 +64,5 @@ struct ActivitySpinnerView: View {
     .tint(.red)
     .opacity(0.5)
     .background(.blue.opacity(0.2).gradient)
-    .frame(width: 240, height: 240)
+    .frame(square: 240)
 }

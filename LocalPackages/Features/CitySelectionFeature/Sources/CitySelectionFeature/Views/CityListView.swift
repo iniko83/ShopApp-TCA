@@ -49,7 +49,6 @@ struct CityListView: View {
               ),
               onSelectId: { id in onAction(.selectCity(id: id)) }
             )
-            .padding(EdgeInsets(horizontal: 16, vertical: 6))
           }
         }
         .animation(.smooth, value: cities)

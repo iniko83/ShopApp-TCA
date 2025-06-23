@@ -38,11 +38,11 @@ struct ActivityBallRotateChaseView: View {
           Group {
             Circle()
               .fill(.tint)
-              .frame(width: itemSide, height: itemSide)
+              .frame(square: itemSide)
               .scaleEffect(calculateScale(index: index))
               .offset(y: elementOffsetY)
           }
-          .frame(width: side, height: side)
+          .frame(square: side)
           .rotationEffect(.degrees(isAnimating ? 360 : 0))
           .animation(itemAnimation, value: isAnimating)
         }
@@ -67,5 +67,5 @@ struct ActivityBallRotateChaseView: View {
     .tint(.red)
     .opacity(0.5)
     .background(.blue.opacity(0.2).gradient)
-    .frame(width: 240, height: 240)
+    .frame(square: 240)
 }

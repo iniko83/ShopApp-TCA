@@ -41,7 +41,7 @@ struct CityContentView: View, Identifiable {
         Image(systemName: "checkmark.circle.fill")
           .resizable()
           .aspectRatio(contentMode: .fit)
-          .frame(maxWidth: 24, maxHeight: 24)
+          .frame(maxSquare: 24)
           .symbolRenderingMode(.palette)
           .foregroundStyle(Color.white, Color.citySelection)
       }

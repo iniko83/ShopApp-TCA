@@ -14,6 +14,8 @@ import Utility
 public struct CitySelectionView: View {
   @Bindable public var store: StoreOf<CitySelectionFeature>
   
+  @FocusState private var isSearchFocused: Bool
+  
   public init(store: StoreOf<CitySelectionFeature>) {
     self.store = store
   }
@@ -22,14 +24,18 @@ public struct CitySelectionView: View {
     ZStack {
       switch store.citiesRequestState {
       case .default:
-        CityListView(
-          cities: store.state.cities,
-          selectedCityId: store.state.selectedCityId,
-          nearestCity: store.state.nearestCity,
-          userCoordinate: store.state.userCoordinate,
-          userCoordinateRequestState: store.state.userCoordinateRequestState,
-          onAction: { store.send(.init(action: $0)) }
-        )
+        VStack(spacing: 0) {
+          SearchFieldView()
+          
+          CityListView(
+            cities: store.state.cities,
+            selectedCityId: store.state.selectedCityId,
+            nearestCity: store.state.nearestCity,
+            userCoordinate: store.state.userCoordinate,
+            userCoordinateRequestState: store.state.userCoordinateRequestState,
+            onAction: { store.send(.init(action: $0)) }
+          )
+        }
         
       case .loading:
         ActivityView(style: .ballRotateChase)
@@ -51,6 +57,34 @@ public struct CitySelectionView: View {
     .onAppear {
       store.send(.onAppear)
     }
+  }
+  
+  @ViewBuilder private func SearchFieldView() -> some View {
+    ZStack {
+      Button(
+        action: { isSearchFocused = true },
+        label: { Color.clear }
+      )
+      .buttonStyle(
+        InputFieldButtonStyle.defaultStyle(isFocused: $store.isSearchFocused)
+      )
+      
+      ClearableInputView(
+        isClearHidden: Binding<Bool>(
+          get: { store.searchText.isEmpty },
+          set: { _ in }
+        ),
+        onClear: { store.send(.binding(.set(\.searchText, .empty))) },
+        content: {
+          TextField("Поиск города", text: $store.searchText)
+            .focused($isSearchFocused)
+            .bind($store.isSearchFocused, to: $isSearchFocused)
+            .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 0))
+        }
+      )
+    }
+    .fixedSize(horizontal: false, vertical: true)
+    .padding(EdgeInsets(top: 0, leading: 16, bottom: 2, trailing: 16))
   }
 }
 

@@ -35,7 +35,7 @@ public struct ClosableToastContentView<Content: View>: View {
           Image(systemName: "xmark")
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(width: 16, height: 16)
+            .frame(square: 16)
             .padding(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
             .offset(x: 8, y: 0)
         }

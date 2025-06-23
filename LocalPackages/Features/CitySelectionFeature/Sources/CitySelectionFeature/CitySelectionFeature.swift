@@ -23,6 +23,9 @@ public struct CitySelectionFeature {
   public struct State: Equatable {
     public var selectedCityId: Int?
     
+    var isSearchFocused = false
+    var searchText: String = .empty
+    
     fileprivate(set) var citiesRequestState = RequestState()
     
     private(set) var userCoordinate: Coordinate?
@@ -67,13 +70,17 @@ public struct CitySelectionFeature {
     /// Equatable
     public static func == (lhs: State, rhs: State) -> Bool {
       lhs.selectedCityId == rhs.selectedCityId
+      && lhs.isSearchFocused == rhs.isSearchFocused
+      && lhs.searchText == rhs.searchText
       && lhs.citiesRequestState == rhs.citiesRequestState
       && lhs.userCoordinate == rhs.userCoordinate
       && lhs.userCoordinateRequestState == rhs.userCoordinateRequestState
     }
   }
   
-  public enum Action {
+  public enum Action: BindableAction {
+    case binding(BindingAction<State>)
+    
     case changeLocationServiceAuthorizationStatus(CLAuthorizationStatus)
     
     case networkAvailable
@@ -99,9 +106,20 @@ public struct CitySelectionFeature {
   }
   
   public var body: some ReducerOf<Self> {
+    BindingReducer()
     Reduce { state, action in
       var result: Effect<Action> = .none
       switch action {
+      case let .binding(action):
+        switch action {
+        case \.searchText:
+          // FIXME: change state by search text
+          break
+          
+        default:
+          break
+        }
+        
       case let .changeLocationServiceAuthorizationStatus(status):
         if status.isAuthorized && state.isNeedRequestUserCoordinate() {
           result = requestUserCoordinateEffect(state: &state)

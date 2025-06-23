@@ -37,7 +37,7 @@ public struct ActivityView: View {
       ActivityView(style: style)
         .tint(.red)
         .opacity(0.5)
-        .frame(width: 120, height: 120)
+        .frame(square: 120)
     }
   }
 }
