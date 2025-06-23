@@ -8,11 +8,8 @@
 import Foundation
 import Utility
 
-struct CityRowData: Equatable, Identifiable {
+struct CityRowData {
   let city: City
   let isSelected: Bool
   let userCoordinate: Coordinate?
-  
-  /// Identifiable
-  var id: Int { city.id }
 }

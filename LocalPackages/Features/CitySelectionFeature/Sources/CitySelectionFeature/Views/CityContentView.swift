@@ -60,7 +60,6 @@ struct CityContentView: View, Identifiable {
     }
     .frame(minHeight: 24)
     .animation(.smooth, value: distanceText)
-    .animation(.rowSelection, value: isSelected)
   }
   
   @ViewBuilder private func TextView() -> some View {
@@ -138,6 +137,7 @@ extension CityContentView {
                 city: city,
                 isSelected: isSelected
               )
+              .animation(.rowSelection, value: isSelected)
               .border(Color.blue.opacity(0.15))
             }
           }

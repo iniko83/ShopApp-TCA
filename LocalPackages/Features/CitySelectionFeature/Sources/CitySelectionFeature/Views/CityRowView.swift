@@ -23,14 +23,16 @@ struct CityRowView: View {
   var body: some View {
     let id = data.city.id
     
-    return Button(
-      action: { onSelectId(id) },
-      label: {
-        CityContentView(rowData: data)
-          .padding(.cityCell)
-      }
-    )
-    .buttonStyle(.highlightingCell)
+    return ZStack {
+      Button(
+        action: { onSelectId(id) },
+        label: { Color.clear }
+      )
+      .buttonStyle(.highlightingCell)
+      
+      CityContentView(rowData: data)
+        .padding(.cityCell)
+    }
   }
 }
 
@@ -99,15 +101,18 @@ struct CityRowView: View {
     @ViewBuilder private func RowView(
       city: City,
       userCoordinate: Coordinate?
-    ) -> CityRowView {
+    ) -> some View {
+      let isSelected = city.id == selectedCityId
+      
       CityRowView(
         data: CityRowData(
           city: city,
-          isSelected: city.id == selectedCityId,
+          isSelected: isSelected,
           userCoordinate: userCoordinate
         ),
         onSelectId: { id in selectedCityId = id }
       )
+      .animation(.rowSelection, value: isSelected)
     }
     
     private func userLocationCity() -> City? {

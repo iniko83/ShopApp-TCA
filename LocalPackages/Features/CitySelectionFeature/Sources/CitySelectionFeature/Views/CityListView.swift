@@ -49,6 +49,7 @@ struct CityListView: View {
               ),
               onSelectId: { id in onAction(.selectCity(id: id)) }
             )
+            .animation(.rowSelection, value: isSelected)
           }
         }
         .animation(.smooth, value: cities)
