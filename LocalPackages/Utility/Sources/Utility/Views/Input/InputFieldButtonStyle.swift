@@ -15,24 +15,30 @@ public struct InputFieldButtonStyle: ButtonStyle {
   private let backgroundColor: Color
   private let borderColor: Color
   
+  private let animation: Animation
+  
   public init(
     isFocused: Binding<Bool>,
     backgroundColor: Color,
-    borderColor: Color
+    borderColor: Color,
+    animation: Animation = .smooth
   ) {
     _isFocused = isFocused
     self.backgroundColor = backgroundColor
     self.borderColor = borderColor
+    self.animation = animation
   }
   
   public init(
     isFocused: Binding<Bool>,
-    color: Color
+    color: Color,
+    animation: Animation = .smooth
   ) {
     self.init(
       isFocused: isFocused,
       backgroundColor: color.opacity(0.2),
-      borderColor: color.opacity(1)
+      borderColor: color.opacity(1),
+      animation: animation
     )
   }
   
@@ -43,23 +49,25 @@ public struct InputFieldButtonStyle: ButtonStyle {
     return configuration.label
       .background(backgroundColor)
       .cornerRadius(.cornerRadius)
-      .if(isBordered) {
-        $0.overlay(
-          RoundedRectangle(cornerRadius: .cornerRadius)
-            .stroke(borderColor)
-        )
-      }
-      .animation(.smooth, value: isBordered)
+      .overlay(
+        RoundedRectangle(cornerRadius: .cornerRadius)
+          .stroke(borderColor, lineWidth: isBordered ? 1.5 : 0)
+          .animation(animation, value: isBordered)
+      )
       .opacity(isEnabled ? 1 : 0.5)
-      .animation(.smooth, value: isEnabled)
+      .animation(animation, value: isEnabled)
   }
 }
 
 extension InputFieldButtonStyle {
-  public static func defaultStyle(isFocused: Binding<Bool>) -> InputFieldButtonStyle {
+  public static func defaultStyle(
+    isFocused: Binding<Bool>,
+    animation: Animation = .smooth
+  ) -> InputFieldButtonStyle {
     InputFieldButtonStyle(
       isFocused: isFocused,
-      color: .mainBackground
+      color: .mainBackground,
+      animation: animation
     )
   }
 }

@@ -49,7 +49,6 @@ public struct ClearableInputView<Content: View>: View {
         .transition(
           .scale(0.5)
           .combined(with: .opacity)
-          .animation(.smooth)
         )
       }
     }

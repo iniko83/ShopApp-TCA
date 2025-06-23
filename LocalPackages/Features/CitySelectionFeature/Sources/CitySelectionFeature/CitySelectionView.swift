@@ -60,30 +60,56 @@ public struct CitySelectionView: View {
   }
   
   @ViewBuilder private func SearchFieldView() -> some View {
-    ZStack {
-      Button(
-        action: { isSearchFocused = true },
-        label: { Color.clear }
-      )
-      .buttonStyle(
-        InputFieldButtonStyle.defaultStyle(isFocused: $store.isSearchFocused)
-      )
-      
-      ClearableInputView(
-        isClearHidden: Binding<Bool>(
-          get: { store.searchText.isEmpty },
-          set: { _ in }
-        ),
-        onClear: { store.send(.binding(.set(\.searchText, .empty))) },
-        content: {
-          TextField("Поиск города", text: $store.searchText)
-            .focused($isSearchFocused)
-            .bind($store.isSearchFocused, to: $isSearchFocused)
-            .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 0))
-        }
-      )
+    let animation: Animation = .smooth
+    let isSearchFocused = store.state.isSearchFocused
+    
+    HStack(spacing: 0) {
+      ZStack {
+        Button(
+          action: { self.isSearchFocused = true },
+          label: { Color.clear }
+        )
+        .buttonStyle(
+          InputFieldButtonStyle.defaultStyle(
+            isFocused: $store.isSearchFocused,
+            animation: animation
+          )
+        )
+        
+        ClearableInputView(
+          isClearHidden: Binding<Bool>(
+            get: { store.searchText.isEmpty },
+            set: { _ in }
+          ),
+          onClear: { store.send(.binding(.set(\.searchText, .empty))) },
+          content: {
+            TextField("Поиск города", text: $store.searchText)
+              .focused($isSearchFocused)
+              .bind($store.isSearchFocused, to: $isSearchFocused)
+              .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 0))
+          }
+        )
+      }
+        
+      if isSearchFocused {
+        Button(
+          action: { self.isSearchFocused = false },
+          label: {
+            Text(String.cancellation)
+              .tint(.black)
+          }
+        )
+        .allowsHitTesting(isSearchFocused)
+        .fixedSize()
+        .padding(.leading, 8)
+        .transition(
+          .opacity
+            .combined(with: .move(edge: .trailing))
+        )
+      }
     }
     .fixedSize(horizontal: false, vertical: true)
+    .animation(animation, value: isSearchFocused)
     .padding(EdgeInsets(top: 0, leading: 16, bottom: 2, trailing: 16))
   }
 }

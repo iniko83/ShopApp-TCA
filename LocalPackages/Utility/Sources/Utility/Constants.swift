@@ -30,5 +30,6 @@ public extension String {
   static let empty = ""
   static let space = " "
   
+  static let cancellation = "Отмена"
   static let retry = "Повторить"
 }
