@@ -135,6 +135,7 @@ extension CityContentView {
           }
         }
         .scrollBounceBehavior(.basedOnSize, axes: .vertical)
+        .animation(.rowSelection, value: isSelected)
       }
       .preferredColorScheme(isDarkTheme ? .dark : .light)
       .padding()
