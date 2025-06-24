@@ -28,6 +28,11 @@ struct DefineNearestCityButton: View {
         .frame(maxWidth: .infinity)
         .opacity(isProcessing ? 0.8 : 1)
         .blur(radius: isProcessing ? 5 : 0)
+        .shimmering(
+          isActive: !isProcessing,
+          animation: Shimmer.animation(delay: 4),
+          gradient: Shimmer.gradient(opacity: 0.7)
+        )
     }
     .buttonStyle(
       MainButtonStyle(style: .blue, shape: .capsule)
