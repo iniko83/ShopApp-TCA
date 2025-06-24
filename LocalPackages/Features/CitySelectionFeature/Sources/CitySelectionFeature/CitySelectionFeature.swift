@@ -13,6 +13,8 @@ import Utility
 
 @Reducer
 public struct CitySelectionFeature {
+  @Dependency(\.mainQueue) var mainQueue
+  
   @Dependency(\.citySelectionApi) var api: CitySelectionApi
   @Dependency(\.locationService) var locationService: LocationService
   @Dependency(\.networkConnectionService) var networkConnectionService
@@ -24,9 +26,9 @@ public struct CitySelectionFeature {
     public var selectedCityId: Int?
     
     var isSearchFocused = false
-    var searchText: String = .empty
+    fileprivate var searchQuery: String = .empty
     
-    fileprivate(set) var citiesRequestState = RequestState()
+    fileprivate(set) var searchEngineRequestState = RequestState()
     
     private(set) var userCoordinate: Coordinate?
     fileprivate(set) var userCoordinateRequestState = RequestLocationState()
@@ -35,14 +37,18 @@ public struct CitySelectionFeature {
     private(set) var nearestCity: City?
     
     // ignored
-    fileprivate(set) var cities = [City]()
+    public var tableSections = [CityTableSection]()
+    fileprivate(set) var cityIds = Set<Int>()
+    fileprivate var searchEngine = CitySearchEngine()
     private(set) var isInitialized = false
     fileprivate(set) var isWantUserCoordinate = false
     
+    var cities: [City] { searchEngine.cities }
+    
     public init() {}
    
-    fileprivate func isNeedRequestCities() -> Bool {
-      cities.isEmpty && citiesRequestState != .loading
+    fileprivate func isNeedRequestSearchEngine() -> Bool {
+      searchEngine.isEmpty() && searchEngineRequestState != .loading
     }
     
     fileprivate func isNeedRequestUserCoordinate() -> Bool {
@@ -71,8 +77,8 @@ public struct CitySelectionFeature {
     public static func == (lhs: State, rhs: State) -> Bool {
       lhs.selectedCityId == rhs.selectedCityId
       && lhs.isSearchFocused == rhs.isSearchFocused
-      && lhs.searchText == rhs.searchText
-      && lhs.citiesRequestState == rhs.citiesRequestState
+      && lhs.searchQuery == rhs.searchQuery
+      && lhs.searchEngineRequestState == rhs.searchEngineRequestState
       && lhs.userCoordinate == rhs.userCoordinate
       && lhs.userCoordinateRequestState == rhs.userCoordinateRequestState
     }
@@ -87,22 +93,25 @@ public struct CitySelectionFeature {
     
     case onAppear
     
-    case responseCities(RequestResult<[City]>)
+    case receiveSearchValidation(CitySearchValidationResult)
+    
+    case responseSearch(CitySearchResponse)
+    case responseSearchEngine(RequestResult<CitySearchEngine>)
     case responseUserCoordinate(Result<Coordinate, LocationServiceError>)
     
-    case selectCity(id: Int)
-    
     case tapDefineUserLocation
-    case tapRequestCities
+    case tapRequestSearchEngine
 
     init(action: CityListView.Action) {
       switch action {
-      case let .selectCity(id):
-        self = .selectCity(id: id)
       case .tapDefineUserLocation:
         self = .tapDefineUserLocation
       }
     }
+  }
+  
+  enum CancelId {
+    case debounceSearch
   }
   
   public var body: some ReducerOf<Self> {
@@ -112,8 +121,11 @@ public struct CitySelectionFeature {
       switch action {
       case let .binding(action):
         switch action {
-        case \.searchText:
-          // FIXME: change state by search text
+        case \.selectedCityId:
+          if let cityId = state.selectedCityId {
+            // FIXME: debug log
+            print("select city with id: \(cityId)")
+          }
           break
           
         default:
@@ -128,8 +140,8 @@ public struct CitySelectionFeature {
         }
         
       case .networkAvailable:
-        if state.citiesRequestState.isRetryableError() {
-          result = requestCitiesEffect(state: &state)
+        if state.searchEngineRequestState.isRetryableError() {
+          result = requestSearchEngineEffect(state: &state)
         }
         
       case .onAppear:
@@ -146,8 +158,8 @@ public struct CitySelectionFeature {
             networkAvailabilityStreamEffect()
           ]
         }
-        if state.isNeedRequestCities() {
-          effects.append(requestCitiesEffect(state: &state))
+        if state.isNeedRequestSearchEngine() {
+          effects.append(requestSearchEngineEffect(state: &state))
         }
         if state.isNeedRequestUserCoordinate() {
           effects.append(requestUserCoordinateEffect(state: &state))
@@ -156,24 +168,37 @@ public struct CitySelectionFeature {
           result = .merge(effects)
         }
         
-      case let .responseCities(response):
+      case let .receiveSearchValidation(validation):
+        if let invalidSymbols = validation.invalidSymbols {
+          // FIXME: add temporary toast under search bar
+        }
+        
+        let query = validation.query()
+        if state.searchQuery != query {
+          state.searchQuery = query
+          result = fetchSearchResultEffect(state: &state)
+        }
+        
+      case let .responseSearch(response):
+        if state.searchQuery == response.query {
+          state.cityIds = response.result.ids
+          state.tableSections = response.result.sections
+        }
+        
+      case let .responseSearchEngine(response):
         switch response {
-        case let .success(cities):
-          state.citiesRequestState = .default
-          state.cities = cities
+        case let .success(value):
+          state.searchEngineRequestState = .default
+          state.searchEngine = value
+          
+          result = fetchSearchResultEffect(state: &state)
           
         case let .failure(error):
-          state.citiesRequestState = .error(error)
+          state.searchEngineRequestState = .error(error)
         }
         
       case let .responseUserCoordinate(response):
         state.receiveUserCoordinateResponse(response)
-        
-      case let .selectCity(id):
-        state.selectedCityId = id
-        
-        // FIXME: debug log
-        print("select city: \(id)")
         
       case .tapDefineUserLocation:
         state.isWantUserCoordinate = true
@@ -185,13 +210,40 @@ public struct CitySelectionFeature {
           result = requestUserCoordinateEffect(state: &state)
         }
         
-      case .tapRequestCities:
-        if state.isNeedRequestCities() {
-          result = requestCitiesEffect(state: &state)
+      case .tapRequestSearchEngine:
+        if state.isNeedRequestSearchEngine() {
+          result = requestSearchEngineEffect(state: &state)
         }
       }
       return result
     }
+  }
+  
+  private func fetchSearchResultEffect(state: inout State) -> Effect<Action> {
+    let query = state.searchQuery
+    
+    let result: Effect<Action>
+    if query.isEmpty {
+      let response = state.searchEngine.defaultResponse
+      
+      result = .merge(
+        .cancel(id: CancelId.debounceSearch),
+        .send(.responseSearch(response))
+      )
+    } else {
+      result = .run { [engine = state.searchEngine] send in
+        let response = await engine
+          .search(unemptyQuery: query)
+          .makeResponse(query: query)
+        await send(.responseSearch(response))
+      }
+      .debounce(
+        id: CancelId.debounceSearch,
+        for: .seconds(.searchDelay),
+        scheduler: mainQueue
+      )
+    }
+    return result
   }
   
   private func locationServiceAuthorizationStatusStreamEffect() -> Effect<Action> {
@@ -214,12 +266,21 @@ public struct CitySelectionFeature {
     }
   }
   
-  private func requestCitiesEffect(state: inout State) -> Effect<Action> {
-    state.citiesRequestState = .loading
+  private func requestSearchEngineEffect(state: inout State) -> Effect<Action> {
+    state.searchEngineRequestState = .loading
     
     return .run { [loadCities = api.loadCities] send in
-      let response = await loadCities()
-      await send(.responseCities(response))
+      let responseCities = await loadCities()
+      let response: RequestResult<CitySearchEngine>
+      switch responseCities {
+      case let .success(cities):
+        let searchEngine = CitySearchEngine(cities: cities)
+        response = .success(searchEngine)
+        
+      case let .failure(error):
+        response = .failure(error)
+      }
+      await send(.responseSearchEngine(response))
     }
   }
   

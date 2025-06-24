@@ -9,8 +9,10 @@ import SwiftUI
 import Utility
 
 struct CityListView: View {
+  @Binding var selectedCityId: Int?
+  @Binding var sections: [CityTableSection]
+  
   private let cities: [City]
-  private let selectedCityId: Int?
 
   private let nearestCity: City?
   private let userCoordinate: Coordinate?
@@ -19,15 +21,17 @@ struct CityListView: View {
   private let onAction: (Action) -> Void
   
   init(
+    selectedCityId: Binding<Int?>,
+    sections: Binding<[CityTableSection]>,
     cities: [City],
-    selectedCityId: Int?,
     nearestCity: City?,
     userCoordinate: Coordinate?,
     userCoordinateRequestState: RequestLocationState,
     onAction: @escaping (Action) -> Void
   ) {
+    _selectedCityId = selectedCityId
+    _sections = sections
     self.cities = cities
-    self.selectedCityId = selectedCityId
     self.nearestCity = nearestCity
     self.userCoordinate = userCoordinate
     self.userCoordinateRequestState = userCoordinateRequestState
@@ -37,22 +41,26 @@ struct CityListView: View {
   var body: some View {
     ZStack {
       ScrollView {
-        LazyVStack(spacing: 0) {
-          ForEach(cities, id: \.id) { city in
-            let isSelected = city.id == selectedCityId
-            
-            CityRowView(
-              data: CityRowData(
-                city: city,
-                isSelected: isSelected,
-                userCoordinate: userCoordinate
-              ),
-              onSelectId: { id in onAction(.selectCity(id: id)) }
+        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+          ForEach(sections, id: \.id) { section in
+            Section(
+              content: {
+                ForEach(section.ids, id: \.self) { id in
+                  let city = cities[id]
+                  
+                  CityRowView(
+                    selectedCityId: $selectedCityId,
+                    city: city,
+                    userCoordinate: userCoordinate
+                  )
+                  .animation(.rowSelection, value: selectedCityId)
+                }
+              },
+              header: { CitySectionHeaderView(kind: section.kind) }
             )
-            .animation(.rowSelection, value: isSelected)
           }
         }
-        .animation(.smooth, value: cities)
+        .animation(.smooth, value: sections)
       }
       .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
       
@@ -75,7 +83,6 @@ struct CityListView: View {
 
 extension CityListView {
   enum Action {
-    case selectCity(id: Int)
     case tapDefineUserLocation
   }
 }

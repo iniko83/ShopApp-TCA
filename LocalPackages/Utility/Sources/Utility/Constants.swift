@@ -17,6 +17,10 @@ public extension Color {
   static let transparent = Color(white: 0, opacity: 0.00001)
 }
 
+public extension Double {
+  static let searchDelay = 0.3
+}
+
 public extension EdgeInsets {
   static let buttonDefaultPadding = EdgeInsets(horizontal: 16, vertical: 8)
   static let zero = EdgeInsets(value: .zero)
@@ -29,7 +33,10 @@ public extension Locale {
 public extension String {
   static let empty = ""
   static let space = " "
-  
+
+  static let lowercasedRussianAlphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+  static let russianAlphabet = lowercasedRussianAlphabet + lowercasedRussianAlphabet.uppercased()
+
   static let cancellation = "Отмена"
   static let retry = "Повторить"
 }

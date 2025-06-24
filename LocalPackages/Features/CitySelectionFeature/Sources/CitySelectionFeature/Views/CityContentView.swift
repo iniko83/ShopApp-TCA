@@ -27,14 +27,6 @@ struct CityContentView: View, Identifiable {
     distanceText = Self.distanceText(from: city.coordinate, to: userCoordinate)
   }
   
-  init(rowData: CityRowData) {
-    self.init(
-      city: rowData.city,
-      isSelected: rowData.isSelected,
-      userCoordinate: rowData.userCoordinate
-    )
-  }
-  
   var body: some View {
     HStack {
       if isSelected {
@@ -60,6 +52,7 @@ struct CityContentView: View, Identifiable {
     }
     .frame(minHeight: 24)
     .animation(.smooth, value: distanceText)
+    .allowsHitTesting(false)
   }
   
   @ViewBuilder private func TextView() -> some View {
@@ -137,7 +130,6 @@ extension CityContentView {
                 city: city,
                 isSelected: isSelected
               )
-              .animation(.rowSelection, value: isSelected)
               .border(Color.blue.opacity(0.15))
             }
           }

@@ -15,6 +15,7 @@ public struct CitySelectionView: View {
   @Bindable public var store: StoreOf<CitySelectionFeature>
   
   @FocusState private var isSearchFocused: Bool
+  @State private var searchText = String.empty
   
   public init(store: StoreOf<CitySelectionFeature>) {
     self.store = store
@@ -22,14 +23,15 @@ public struct CitySelectionView: View {
   
   public var body: some View {
     ZStack {
-      switch store.citiesRequestState {
+      switch store.searchEngineRequestState {
       case .default:
         VStack(spacing: 0) {
           SearchFieldView()
           
           CityListView(
+            selectedCityId: $store.selectedCityId,
+            sections: $store.tableSections,
             cities: store.state.cities,
-            selectedCityId: store.state.selectedCityId,
             nearestCity: store.state.nearestCity,
             userCoordinate: store.state.userCoordinate,
             userCoordinateRequestState: store.state.userCoordinateRequestState,
@@ -49,7 +51,7 @@ public struct CitySelectionView: View {
             error: error,
             message: "Не удалось загрузить список городов."
           ),
-          retryAction: { store.send(.tapRequestCities) }
+          retryAction: { store.send(.tapRequestSearchEngine) }
         )
         .padding()
       }
@@ -78,14 +80,21 @@ public struct CitySelectionView: View {
         
         ClearableInputView(
           isClearHidden: Binding<Bool>(
-            get: { store.searchText.isEmpty },
+            get: { searchText.isEmpty },
             set: { _ in }
           ),
-          onClear: { store.send(.binding(.set(\.searchText, .empty))) },
+          onClear: { searchText = .empty },
           content: {
-            TextField("Поиск города", text: $store.searchText)
+            TextField("Поиск города", text: $searchText)
               .focused($isSearchFocused)
               .bind($store.isSearchFocused, to: $isSearchFocused)
+              .onChange(of: searchText) { from, to in
+                let validation = CitySearch.validate(text: to)
+                store.send(.receiveSearchValidation(validation))
+
+                guard to != validation.text else { return }
+                searchText = validation.text
+              }
               .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 0))
           }
         )

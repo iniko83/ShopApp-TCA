@@ -9,29 +9,43 @@ import SwiftUI
 import Utility
 
 struct CityRowView: View {
-  private let data: CityRowData
-  private let onSelectId: (_ id: Int) -> Void
+  @Binding var selectedCityId: Int?
+  
+  private let city: City
+  private let userCoordinate: Coordinate?
+  
+  private let animation: Animation
   
   init(
-    data: CityRowData,
-    onSelectId: @escaping (_ id: Int) -> Void
+    selectedCityId: Binding<Int?>,
+    city: City,
+    userCoordinate: Coordinate?,
+    animation: Animation = .rowSelection
   ) {
-    self.data = data
-    self.onSelectId = onSelectId
+    _selectedCityId = selectedCityId
+    self.city = city
+    self.userCoordinate = userCoordinate
+    self.animation = animation
   }
   
   var body: some View {
-    let id = data.city.id
+    let id = city.id
+    let isSelected = selectedCityId == id
     
     return ZStack {
       Button(
-        action: { onSelectId(id) },
+        action: { selectedCityId = id },
         label: { Color.clear }
       )
       .buttonStyle(.highlightingCell)
       
-      CityContentView(rowData: data)
-        .padding(.cityCell)
+      CityContentView(
+        city: city,
+        isSelected: isSelected,
+        userCoordinate: userCoordinate
+      )
+      .padding(.cityCell)
+      .animation(animation, value: selectedCityId)
     }
   }
 }
@@ -86,7 +100,8 @@ struct CityRowView: View {
         
         LazyVStack(spacing: 2) {
           ForEach(cities, id: \.id) { city in
-            RowView(
+            CityRowView(
+              selectedCityId: $selectedCityId,
               city: city,
               userCoordinate: userLocationCity?.coordinate
             )
@@ -96,23 +111,6 @@ struct CityRowView: View {
       }
       .preferredColorScheme(isDarkTheme ? .dark : .light)
       .padding()
-    }
-    
-    @ViewBuilder private func RowView(
-      city: City,
-      userCoordinate: Coordinate?
-    ) -> some View {
-      let isSelected = city.id == selectedCityId
-      
-      CityRowView(
-        data: CityRowData(
-          city: city,
-          isSelected: isSelected,
-          userCoordinate: userCoordinate
-        ),
-        onSelectId: { id in selectedCityId = id }
-      )
-      .animation(.rowSelection, value: isSelected)
     }
     
     private func userLocationCity() -> City? {
