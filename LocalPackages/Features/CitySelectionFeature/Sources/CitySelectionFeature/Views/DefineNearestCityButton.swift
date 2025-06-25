@@ -23,6 +23,7 @@ struct DefineNearestCityButton: View {
   var body: some View {
     Button(action: action) {
       Text("Определить ближайший город")
+        .multilineTextAlignment(.center)
         .opacity(isProcessing ? 0.8 : 1)
         .blur(radius: isProcessing ? 5 : 0)
         .shimmering(
@@ -37,6 +38,7 @@ struct DefineNearestCityButton: View {
     .overlay {
       ActivityView(style: .spinner())
         .tint(.white)
+        .frame(maxHeight: 40)
         .padding(6)
         .opacity(isProcessing ? 1 : 0)
     }

@@ -55,7 +55,7 @@ public struct CitySelectionView: View {
                   )
               }
             }
-            .frame(maxWidth: .infinity, minHeight: 50)
+            .frame(maxWidth: .infinity, minHeight: 80)
             .padding(.horizontal)
             .verticalGradientMaskWithPaddings(top: 12, topOpacity: 0.5)
           }

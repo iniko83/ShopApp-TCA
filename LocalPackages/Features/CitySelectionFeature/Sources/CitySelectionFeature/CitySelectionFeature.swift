@@ -187,6 +187,11 @@ public struct CitySelectionFeature {
         
       case let .binding(action):
         switch action {
+        case \.isSearchFocused:
+          if !state.isSearchFocused {
+            result = .send(.hideQueryWarningToast)
+          }
+          
         case \.selectedCityId:
           if let cityId = state.selectedCityId {
             // FIXME: debug log
@@ -248,7 +253,7 @@ public struct CitySelectionFeature {
           state.queryInvalidSymbols = invalidSymbols
           
           let hideQueryWarningToastEffect = Effect<Action>
-            .run { send in await send(.hideQueryWarningToast) }
+            .send(.hideQueryWarningToast)
             .debounce(
               id: CancelId.debounceQueryWarningTimeout,
               for: .seconds(.queryWarningTimeout),

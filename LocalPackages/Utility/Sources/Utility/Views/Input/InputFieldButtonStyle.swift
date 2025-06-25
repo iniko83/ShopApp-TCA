@@ -46,12 +46,15 @@ public struct InputFieldButtonStyle: ButtonStyle {
     let isPressed = configuration.isPressed
     let isBordered = isEnabled && (isPressed || isFocused)
     
+    let lineWidth: CGFloat = isBordered ? 1.5 : 0
+    
     return configuration.label
       .background(backgroundColor)
       .cornerRadius(.cornerRadius)
       .overlay(
         RoundedRectangle(cornerRadius: .cornerRadius)
-          .stroke(borderColor, lineWidth: isBordered ? 1.5 : 0)
+          .inset(by: 0.5 * lineWidth)
+          .stroke(borderColor, lineWidth: lineWidth)
           .animation(animation, value: isBordered)
       )
       .opacity(isEnabled ? 1 : 0.5)
