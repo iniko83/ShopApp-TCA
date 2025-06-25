@@ -8,8 +8,6 @@
 import SwiftUI
 import Utility
 
-// FIXME: add shimmer effect
-
 struct DefineNearestCityButton: View {
   private let isProcessing: Bool
   private let action: () -> Void
@@ -25,7 +23,6 @@ struct DefineNearestCityButton: View {
   var body: some View {
     Button(action: action) {
       Text("Определить ближайший город")
-        .frame(maxWidth: .infinity)
         .opacity(isProcessing ? 0.8 : 1)
         .blur(radius: isProcessing ? 5 : 0)
         .shimmering(
@@ -45,6 +42,12 @@ struct DefineNearestCityButton: View {
     }
     .animation(.smooth, value: isProcessing)
     .allowsHitTesting(!isProcessing)
+    .background(
+      // avoid tap
+      Button(action: {}) {
+        Color.clear
+      }
+    )
   }
 }
 

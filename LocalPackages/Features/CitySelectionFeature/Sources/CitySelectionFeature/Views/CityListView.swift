@@ -15,8 +15,8 @@ struct CityListView: View {
   private let cities: [City]
 
   private let nearestCity: City?
+  private let nearestCityRequestState: RequestLocationState
   private let userCoordinate: Coordinate?
-  private let userCoordinateRequestState: RequestLocationState
   
   private let onAction: (Action) -> Void
   
@@ -25,16 +25,16 @@ struct CityListView: View {
     sections: Binding<[CityTableSection]>,
     cities: [City],
     nearestCity: City?,
+    nearestCityRequestState: RequestLocationState,
     userCoordinate: Coordinate?,
-    userCoordinateRequestState: RequestLocationState,
     onAction: @escaping (Action) -> Void
   ) {
     _selectedCityId = selectedCityId
     _sections = sections
     self.cities = cities
     self.nearestCity = nearestCity
+    self.nearestCityRequestState = nearestCityRequestState
     self.userCoordinate = userCoordinate
-    self.userCoordinateRequestState = userCoordinateRequestState
     self.onAction = onAction
   }
   
@@ -46,14 +46,14 @@ struct CityListView: View {
             Section(
               content: {
                 ForEach(section.ids, id: \.self) { id in
-                  let city = cities[id]
-                  
-                  CityRowView(
-                    selectedCityId: $selectedCityId,
-                    city: city,
-                    userCoordinate: userCoordinate
-                  )
-                  .animation(.rowSelection, value: selectedCityId)
+                  if let city = cities[safe: id] {
+                    CityRowView(
+                      selectedCityId: $selectedCityId,
+                      city: city,
+                      userCoordinate: userCoordinate
+                    )
+                    .animation(.rowSelection, value: selectedCityId)
+                  }
                 }
               },
               header: { CitySectionHeaderView(kind: section.kind) }
@@ -62,14 +62,13 @@ struct CityListView: View {
         }
         .animation(.smooth, value: sections)
       }
-      .scrollBounceBehavior(.basedOnSize, axes: [.vertical])
       
       VStack {
         if let nearestCity {
           // FIXME: add nearest city when cities & location managers implemented in store
         } else {
           DefineNearestCityButton(
-            isProcessing: userCoordinateRequestState.isProcessing,
+            isProcessing: nearestCityRequestState.isProcessing,
             action: { onAction(.tapDefineUserLocation) }
           )
           .shadow(color: .mainBackground.opacity(0.2), radius: 6)
@@ -77,6 +76,7 @@ struct CityListView: View {
       }
       .padding()
       .frame(maxHeight: .infinity, alignment: .bottom)
+      .ignoresSafeArea(.keyboard, edges: .bottom)
     }
   }
 }

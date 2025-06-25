@@ -21,24 +21,36 @@ struct CitySectionHeaderView: View {
       Color.clear
         .frame(height: .zero)
     } else {
-      Text(text)
-        .fontWeight(.medium)
-        .foregroundStyle(.black.opacity(0.8))
-        .multilineTextAlignment(.trailing)
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .padding(EdgeInsets(horizontal: 16, vertical: 4))
-        .background(
-          GradientBackgroundView()
-        )
+      ZStack {
+        Color.clear
+          .background(.ultraThinMaterial)
+          .mask(GradientBackgroundView())
+        
+        Text(text)
+          .fontWeight(.medium)
+          .foregroundStyle(.black.opacity(0.8))
+          .multilineTextAlignment(.trailing)
+          .frame(maxWidth: .infinity, alignment: .trailing)
+          .padding(EdgeInsets(horizontal: 16, vertical: 4))
+          .background(
+            GradientBackgroundView(colorOpacity: 0.4)
+          )
+      }
     }
   }
 }
 
 struct GradientBackgroundView: View {
+  private let colorOpacity: CGFloat
+  
+  init(colorOpacity: CGFloat = 1) {
+    self.colorOpacity = colorOpacity
+  }
+  
   var body: some View {
     ZStack {
       let stops: [Gradient.Stop] = [
-        .init(color: .mainAccent.opacity(0.4), location: 0),
+        .init(color: .mainAccent.opacity(colorOpacity), location: 0),
         .init(color: .clear, location: 0.9),
         .init(color: .clear, location: 1)
       ]

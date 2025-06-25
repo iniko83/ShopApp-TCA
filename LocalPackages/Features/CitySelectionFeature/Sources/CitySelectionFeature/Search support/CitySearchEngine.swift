@@ -35,7 +35,7 @@ public struct CitySearchEngine: Sendable {
     cities.isEmpty
   }
   
-  func findNearestCity(to coordinate: Coordinate?) -> City? {
+  func findNearestCity(to coordinate: Coordinate?) async -> City? {
     guard let coordinate else { return nil }
     return cities.nearest(to: coordinate)
   }

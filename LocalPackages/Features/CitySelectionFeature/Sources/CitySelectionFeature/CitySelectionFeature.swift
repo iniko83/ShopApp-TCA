@@ -31,10 +31,12 @@ public struct CitySelectionFeature {
     fileprivate(set) var searchEngineRequestState = RequestState()
     
     private(set) var userCoordinate: Coordinate?
-    fileprivate(set) var userCoordinateRequestState = RequestLocationState()
+    private(set) var userCoordinateRequestState = RequestLocationState()
+    
+    private(set) var nearestCity: City?
     
     // dependent
-    private(set) var nearestCity: City?
+    fileprivate(set) var nearestCityRequestState = RequestLocationState() // by userCoordinateRequestState & nearestCity
     
     // ignored
     public var tableSections = [CityTableSection]()
@@ -65,12 +67,40 @@ public struct CitySelectionFeature {
     ) {
       switch response {
       case let .success(coordinate):
-        userCoordinateRequestState = .default
+        setUserCoordinateRequestState(.default)
         userCoordinate = coordinate
        
       case let .failure(error):
-        userCoordinateRequestState = .error(error)
+        setUserCoordinateRequestState(.error(error))
       }
+    }
+    
+    mutating fileprivate func setUserCoordinateRequestState(_ value: RequestLocationState) {
+      userCoordinateRequestState = value
+      updateNearestCityRequestState()
+    }
+    
+    mutating fileprivate func setNearestCity(_ value: City?) {
+      // FIXME: debug log
+      if let value {
+        print("receive nearest city: id: \(value.id), name: \(value.name)")
+      }
+      
+      nearestCity = value
+      updateNearestCityRequestState()
+    }
+    
+    mutating private func updateNearestCityRequestState() {
+      let value: RequestLocationState
+      switch userCoordinateRequestState {
+      case .default:
+        value = nearestCity == nil ? .processing : .default
+      case .processing:
+        value = .processing
+      case let .error(error):
+        value = .error(error)
+      }
+      nearestCityRequestState = value
     }
     
     /// Equatable
@@ -81,6 +111,7 @@ public struct CitySelectionFeature {
       && lhs.searchEngineRequestState == rhs.searchEngineRequestState
       && lhs.userCoordinate == rhs.userCoordinate
       && lhs.userCoordinateRequestState == rhs.userCoordinateRequestState
+      && lhs.nearestCity == rhs.nearestCity
     }
   }
   
@@ -93,6 +124,7 @@ public struct CitySelectionFeature {
     
     case onAppear
     
+    case receiveNearestCity(City)
     case receiveSearchValidation(CitySearchValidationResult)
     
     case responseSearch(CitySearchResponse)
@@ -168,6 +200,9 @@ public struct CitySelectionFeature {
           result = .merge(effects)
         }
         
+      case let .receiveNearestCity(city):
+        state.setNearestCity(city)
+        
       case let .receiveSearchValidation(validation):
         if let invalidSymbols = validation.invalidSymbols {
           // FIXME: add temporary toast under search bar
@@ -190,15 +225,21 @@ public struct CitySelectionFeature {
         case let .success(value):
           state.searchEngineRequestState = .default
           state.searchEngine = value
+          // FIXME: big animation lag on launching app first time after install...
+          state.isSearchFocused = true
           
-          result = fetchSearchResultEffect(state: &state)
-          
+          result = .merge([
+            fetchSearchResultEffect(state: &state),
+            fetchNearestCityEffect(state: &state)
+          ])
+
         case let .failure(error):
           state.searchEngineRequestState = .error(error)
         }
         
       case let .responseUserCoordinate(response):
         state.receiveUserCoordinateResponse(response)
+        result = fetchNearestCityEffect(state: &state, isWantUpdate: true)
         
       case .tapDefineUserLocation:
         state.isWantUserCoordinate = true
@@ -216,6 +257,24 @@ public struct CitySelectionFeature {
         }
       }
       return result
+    }
+  }
+  
+  private func fetchNearestCityEffect(
+    state: inout State,
+    isWantUpdate: Bool = false
+  ) -> Effect<Action> {
+    let engine = state.searchEngine
+    let isNeeded = !engine.isEmpty() && (isWantUpdate || state.nearestCity == nil)
+
+    guard
+      isNeeded,
+      let userCoordinate = state.userCoordinate
+    else { return .none }
+    
+    return .run { send in
+      guard let city = await engine.findNearestCity(to: userCoordinate) else { return }
+      await send(.receiveNearestCity(city))
     }
   }
   
@@ -286,7 +345,7 @@ public struct CitySelectionFeature {
   
   private func requestUserCoordinateEffect(state: inout State) -> Effect<Action> {
     state.isWantUserCoordinate = false
-    state.userCoordinateRequestState = .processing
+    state.setUserCoordinateRequestState(.processing)
     
     return .run { [requestLocation = locationService.requestLocation] send in
       let locationResult = await requestLocation()

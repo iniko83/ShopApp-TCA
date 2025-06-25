@@ -23,7 +23,7 @@ public struct CitySelectionView: View {
   
   public var body: some View {
     ZStack {
-      switch store.searchEngineRequestState {
+      switch store.state.searchEngineRequestState {
       case .default:
         VStack(spacing: 0) {
           SearchFieldView()
@@ -33,8 +33,8 @@ public struct CitySelectionView: View {
             sections: $store.tableSections,
             cities: store.state.cities,
             nearestCity: store.state.nearestCity,
+            nearestCityRequestState: store.state.nearestCityRequestState,
             userCoordinate: store.state.userCoordinate,
-            userCoordinateRequestState: store.state.userCoordinateRequestState,
             onAction: { store.send(.init(action: $0)) }
           )
         }
@@ -55,6 +55,9 @@ public struct CitySelectionView: View {
         )
         .padding()
       }
+    }
+    .if(store.state.isInitialized) { content in
+      content.animation(.smooth, value: store.state.searchEngineRequestState)
     }
     .onAppear {
       store.send(.onAppear)
