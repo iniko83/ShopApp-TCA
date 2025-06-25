@@ -61,6 +61,7 @@ struct RefreshButton: View {
       MainButtonStyle(style: .blue, contentPadding: .zero)
     )
     .allowsHitTesting(!isProcessing)
+    .preventPassthoughTouches()
     .clipShape(.circle)
   }
 }

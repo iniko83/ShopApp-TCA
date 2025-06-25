@@ -32,6 +32,7 @@ public struct CitySelectionFeature {
     
     var isSearchFocused = false
     fileprivate var searchQuery: String = .empty
+    fileprivate(set) var queryInvalidSymbols: String = .empty
     
     fileprivate(set) var searchEngineRequestState = RequestState()
     
@@ -127,6 +128,8 @@ public struct CitySelectionFeature {
     
     case changeLocationServiceAuthorizationStatus(CLAuthorizationStatus)
     
+    case hideQueryWarningToast
+    
     case networkAvailable
     
     case onAppear
@@ -155,6 +158,7 @@ public struct CitySelectionFeature {
   }
   
   enum CancelId {
+    case debounceQueryWarningTimeout
     case debounceSearch
   }
   
@@ -201,6 +205,11 @@ public struct CitySelectionFeature {
           state.isWantUserCoordinate = false
         }
         
+      case .hideQueryWarningToast:
+        state.queryInvalidSymbols = .empty
+        
+        result = .cancel(id: CancelId.debounceQueryWarningTimeout)
+        
       case .networkAvailable:
         if state.searchEngineRequestState.isRetryableError() {
           result = requestSearchEngineEffect(state: &state)
@@ -234,14 +243,29 @@ public struct CitySelectionFeature {
         state.setNearestCity(city)
         
       case let .receiveSearchValidation(validation):
+        var effects = [Effect<Action>]()
         if let invalidSymbols = validation.invalidSymbols {
-          // FIXME: add temporary toast under search bar
+          state.queryInvalidSymbols = invalidSymbols
+          
+          let hideQueryWarningToastEffect = Effect<Action>
+            .run { send in await send(.hideQueryWarningToast) }
+            .debounce(
+              id: CancelId.debounceQueryWarningTimeout,
+              for: .seconds(.queryWarningTimeout),
+              scheduler: mainQueue
+            )
+          
+          effects.append(hideQueryWarningToastEffect)
         }
         
         let query = validation.query()
         if state.searchQuery != query {
           state.searchQuery = query
-          result = fetchSearchResultEffect(state: &state)
+          effects.append(fetchSearchResultEffect(state: &state))
+        }
+        
+        if !effects.isEmpty {
+          result = .merge(effects)
         }
         
       case let .responseSearch(response):
@@ -413,4 +437,10 @@ extension AlertState where Action == CitySelectionFeature.Action.Alert {
       )
     }
   )
+}
+
+
+/// Constants
+private extension TimeInterval {
+  static let queryWarningTimeout: TimeInterval = 5
 }

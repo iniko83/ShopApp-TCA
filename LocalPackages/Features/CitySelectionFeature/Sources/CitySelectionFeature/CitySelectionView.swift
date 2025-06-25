@@ -25,18 +25,34 @@ public struct CitySelectionView: View {
     ZStack {
       switch store.state.searchEngineRequestState {
       case .default:
+        let invalidSymbols = store.state.queryInvalidSymbols
+        let isShowQueryToast = !invalidSymbols.isEmpty
+        
         VStack(spacing: 0) {
           SearchFieldView()
           
-          CityListView(
-            selectedCityId: $store.selectedCityId,
-            sections: $store.tableSections,
-            cities: store.state.cities,
-            nearestCity: store.state.nearestCity,
-            nearestCityRequestState: store.state.nearestCityRequestState,
-            userCoordinate: store.state.userCoordinate,
-            onAction: { store.send(.init(action: $0)) }
-          )
+          ZStack(alignment: .top) {
+            CityListView(
+              selectedCityId: $store.selectedCityId,
+              sections: $store.tableSections,
+              cities: store.state.cities,
+              nearestCity: store.state.nearestCity,
+              nearestCityRequestState: store.state.nearestCityRequestState,
+              userCoordinate: store.state.userCoordinate,
+              onAction: { store.send(.init(action: $0)) }
+            )
+
+            // FIXME: add mask
+            VStack {
+              if isShowQueryToast {
+                QueryToastView(invalidSymbols: invalidSymbols)
+              }
+            }
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .clipped()
+            .padding(.horizontal)
+          }
+          .animation(.smooth, value: isShowQueryToast)
         }
         
       case .loading:
@@ -63,6 +79,34 @@ public struct CitySelectionView: View {
     .onAppear {
       store.send(.onAppear)
     }
+  }
+  
+  @ViewBuilder private func QueryToastView(invalidSymbols: String) -> some View {
+    let style = ToastStyle.warning
+    let message = "Удалены недопустимые символы: **\(invalidSymbols)**"
+    
+    ClosableToastContentView(
+      style: style,
+      onClose: { store.send(.hideQueryWarningToast) },
+      content: {
+        ToastContentView(
+          style: style,
+          content: {
+            Text(message.markdown()!)
+              .font(.subheadline)
+              .opacity(0.7)
+          }
+        )
+      }
+    )
+    .toast(
+      style,
+      cornerRadius: 10,
+      padding: EdgeInsets(horizontal: 8, vertical: 4)
+    )
+    .transition(
+      .opacity.combined(with: .move(edge: .top))
+    )
   }
   
   @ViewBuilder private func SearchFieldView() -> some View {

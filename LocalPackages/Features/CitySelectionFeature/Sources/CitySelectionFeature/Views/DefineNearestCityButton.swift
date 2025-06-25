@@ -42,12 +42,7 @@ struct DefineNearestCityButton: View {
     }
     .animation(.smooth, value: isProcessing)
     .allowsHitTesting(!isProcessing)
-    .background(
-      // avoid tap
-      Button(action: {}) {
-        Color.clear
-      }
-    )
+    .preventPassthoughTouches()
   }
 }
 

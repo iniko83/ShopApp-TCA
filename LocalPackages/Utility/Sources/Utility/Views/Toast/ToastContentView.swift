@@ -7,28 +7,79 @@
 
 import SwiftUI
 
-public struct ToastContentView: View {
-  private let text: String
+// Initialize explanations: https://stackoverflow.com/a/71383188
+
+public struct ToastContentView<Content: View>: View {
   private let style: ToastStyle
   
-  init(
-    text: String,
-    style: ToastStyle = .init()
+  @ViewBuilder private let content: () -> Content
+  
+  public init(
+    style: ToastStyle = .init(),
+    content: @escaping () -> Content
   ) {
-    self.text = text
     self.style = style
+    self.content = content
+  }
+  
+  public init(
+    style: ToastStyle = .init(),
+    markdown: AttributedString
+  ) where Content == ToastMarkdownView {
+    self.init(
+      style: style,
+      content: { ToastMarkdownView(markdown: markdown) }
+    )
+  }
+  
+  public init(
+    style: ToastStyle = .init(),
+    text: String
+  ) where Content == ToastTextView {
+    self.init(
+      style: style,
+      content: { ToastTextView(text: text) }
+    )
   }
   
   public var body: some View {
     HStack {
       Image(systemName: style.iconSystemName())
         .foregroundStyle(style.color())
-      Text(text)
-        .opacity(0.7)
+     
+      content()
+      
       Spacer()
     }
   }
 }
+
+public struct ToastMarkdownView: View {
+  private let markdown: AttributedString
+  
+  fileprivate init(markdown: AttributedString) {
+    self.markdown = markdown
+  }
+  
+  public var body: some View {
+    Text(markdown)
+      .opacity(0.7)
+  }
+}
+
+public struct ToastTextView: View {
+  private let text: String
+  
+  fileprivate init(text: String) {
+    self.text = text
+  }
+  
+  public var body: some View {
+    Text(text)
+      .opacity(0.7)
+  }
+}
+
 
 #Preview {
   struct Item: Equatable {
@@ -91,8 +142,8 @@ public struct ToastContentView: View {
                   },
                   content: {
                     ToastContentView(
-                      text: "This is \(name) toast.",
-                      style: style
+                      style: style,
+                      text: "This is \(name) toast."
                     )
                   }
                 )
