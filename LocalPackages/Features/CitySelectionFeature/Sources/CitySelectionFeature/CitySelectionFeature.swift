@@ -11,6 +11,8 @@ import NetworkClient
 import NetworkConnectionService
 import Utility
 
+// FIXME: add city selection history
+
 @Reducer
 public struct CitySelectionFeature {
   @Dependency(\.mainQueue) var mainQueue
@@ -18,11 +20,14 @@ public struct CitySelectionFeature {
   @Dependency(\.citySelectionApi) var api: CitySelectionApi
   @Dependency(\.locationService) var locationService: LocationService
   @Dependency(\.networkConnectionService) var networkConnectionService
+  @Dependency(\.openApplicationSettings) var openApplicationSettings
   
   public init() {}
   
   @ObservableState
   public struct State: Equatable {
+    @Presents var alert: AlertState<Action.Alert>?
+    
     public var selectedCityId: Int?
     
     var isSearchFocused = false
@@ -116,6 +121,8 @@ public struct CitySelectionFeature {
   }
   
   public enum Action: BindableAction {
+    case alert(PresentationAction<Alert>)
+    
     case binding(BindingAction<State>)
     
     case changeLocationServiceAuthorizationStatus(CLAuthorizationStatus)
@@ -133,6 +140,11 @@ public struct CitySelectionFeature {
     
     case tapDefineUserLocation
     case tapRequestSearchEngine
+    
+    public enum Alert: Int, Equatable, Sendable {
+      case cancel
+      case openApplicationSettings
+    }
 
     init(action: CityListView.Action) {
       switch action {
@@ -151,6 +163,24 @@ public struct CitySelectionFeature {
     Reduce { state, action in
       var result: Effect<Action> = .none
       switch action {
+      case let .alert(presentationAction):
+        switch presentationAction {
+        case let .presented(action):
+          state.alert = nil
+          
+          switch action {
+          case .cancel:
+            break
+            
+          case .openApplicationSettings:
+            let openApplicationSettings = self.openApplicationSettings
+            result = .run { _ in await openApplicationSettings() }
+          }
+          
+        default:
+          break
+        }
+        
       case let .binding(action):
         switch action {
         case \.selectedCityId:
@@ -246,7 +276,7 @@ public struct CitySelectionFeature {
         
         let isLocationServiceDenied = locationService.authorizationStatus().isDenied
         if isLocationServiceDenied {
-          // FIXME: add showing alert "open application settings"
+          state.alert = .openApplicationSettings
         } else if state.isNeedRequestUserCoordinate() {
           result = requestUserCoordinateEffect(state: &state)
         }
@@ -258,6 +288,7 @@ public struct CitySelectionFeature {
       }
       return result
     }
+    .ifLet(\.$alert, action: \.alert)
   }
   
   private func fetchNearestCityEffect(
@@ -363,4 +394,23 @@ public struct CitySelectionFeature {
       await send(.responseUserCoordinate(response))
     }
   }
+}
+
+extension AlertState where Action == CitySelectionFeature.Action.Alert {
+  static let openApplicationSettings = AlertState(
+    title: {
+      TextState("Для определения Вашего местоположения необхожимо включить геолокацию")
+    },
+    actions: {
+      ButtonState(
+        role: .cancel,
+        action: .cancel,
+        label: { TextState(String.cancellation) }
+      )
+      ButtonState(
+        action: .openApplicationSettings,
+        label: { TextState("Открыть настройки") }
+      )
+    }
+  )
 }

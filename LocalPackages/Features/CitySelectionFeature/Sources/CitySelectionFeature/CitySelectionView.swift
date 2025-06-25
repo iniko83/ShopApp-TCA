@@ -59,6 +59,7 @@ public struct CitySelectionView: View {
     .if(store.state.isInitialized) { content in
       content.animation(.smooth, value: store.state.searchEngineRequestState)
     }
+    .alert($store.scope(state: \.alert, action: \.alert))
     .onAppear {
       store.send(.onAppear)
     }
