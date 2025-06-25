@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+// NOTE: Text position animation bug (geometryGroup): https://stackoverflow.com/a/77335507
+
 extension View {
   public func toast(
     _ style: ToastStyle,
@@ -65,6 +67,7 @@ struct ToastStyleModifier: ViewModifier {
           .stroke(color, lineWidth: .strokeLineWidth)
           .shadow(color: color.opacity(0.2), radius: 6, x: 2, y: 2)
       )      
+      .geometryGroup()
   }
 }
 

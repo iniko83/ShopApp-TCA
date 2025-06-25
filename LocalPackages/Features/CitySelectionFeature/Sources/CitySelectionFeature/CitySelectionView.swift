@@ -42,15 +42,22 @@ public struct CitySelectionView: View {
               onAction: { store.send(.init(action: $0)) }
             )
 
-            // FIXME: add mask
             VStack {
               if isShowQueryToast {
-                QueryToastView(invalidSymbols: invalidSymbols)
+                CityQueryToastView(
+                  invalidSymbols: invalidSymbols,
+                  onClose: { store.send(.hideQueryWarningToast) }
+                )
+                  .padding(.top, 4)
+                  .transition(
+                    .opacity
+                    .combined(with: .move(edge: .top))
+                  )
               }
             }
             .frame(maxWidth: .infinity, minHeight: 50)
-            .clipped()
             .padding(.horizontal)
+            .verticalGradientMaskWithPaddings(top: 12, topOpacity: 0.5)
           }
           .animation(.smooth, value: isShowQueryToast)
         }
@@ -79,34 +86,6 @@ public struct CitySelectionView: View {
     .onAppear {
       store.send(.onAppear)
     }
-  }
-  
-  @ViewBuilder private func QueryToastView(invalidSymbols: String) -> some View {
-    let style = ToastStyle.warning
-    let message = "Удалены недопустимые символы: **\(invalidSymbols)**"
-    
-    ClosableToastContentView(
-      style: style,
-      onClose: { store.send(.hideQueryWarningToast) },
-      content: {
-        ToastContentView(
-          style: style,
-          content: {
-            Text(message.markdown()!)
-              .font(.subheadline)
-              .opacity(0.7)
-          }
-        )
-      }
-    )
-    .toast(
-      style,
-      cornerRadius: 10,
-      padding: EdgeInsets(horizontal: 8, vertical: 4)
-    )
-    .transition(
-      .opacity.combined(with: .move(edge: .top))
-    )
   }
   
   @ViewBuilder private func SearchFieldView() -> some View {
