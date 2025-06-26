@@ -17,6 +17,9 @@ public struct CitySelectionView: View {
   @FocusState private var isSearchFocused: Bool
   @State private var searchText = String.empty
   
+  @State private var scrollTopInset: CGFloat = .zero
+  @State private var scrollBottomInset: CGFloat = .zero
+
   public init(store: StoreOf<CitySelectionFeature>) {
     self.store = store
   }
@@ -27,37 +30,71 @@ public struct CitySelectionView: View {
       case .default:
         let invalidSymbols = store.state.queryInvalidSymbols
         let isShowQueryToast = !invalidSymbols.isEmpty
-        
-        VStack(spacing: 0) {
-          SearchFieldView()
-          
-          ZStack(alignment: .top) {
+
+        ZStack(alignment: .top) {
+          ZStack {
+            let contentPadding: CGFloat = 10
+            
             CityListView(
               selectedCityId: $store.selectedCityId,
               sections: $store.tableSections,
               cities: store.state.cities,
-              nearestCity: store.state.nearestCity,
-              nearestCityRequestState: store.state.nearestCityRequestState,
               userCoordinate: store.state.userCoordinate,
-              onAction: { store.send(.init(action: $0)) }
+              insets: scrollInsets()
             )
-
+            .scrollEdgeEffect(
+              EdgeEffect.ScrollConfiguration(
+                topEdgeConfiguration: EdgeEffect.Configuration(
+                  height: scrollTopInset + contentPadding,
+                ),
+                bottomEdgeConfiguration: EdgeEffect.Configuration(
+                  height: scrollBottomInset + contentPadding,
+                  thresholdLocation: 0.3
+                )
+              )
+            )
+          }
+          .ignoresSafeArea()
+          
+          VStack(spacing: 0) {
+            SearchFieldView()
+              .onGeometryChange(
+                for: CGFloat.self,
+                of: { proxy in proxy.size.height + proxy.safeAreaInsets.top },
+                action: { scrollTopInset = $0 }
+              )
+            
             VStack {
               if isShowQueryToast {
                 CityQueryToastView(
                   invalidSymbols: invalidSymbols,
                   onClose: { store.send(.hideQueryWarningToast) }
                 )
-                  .padding(.top, 4)
-                  .transition(
-                    .opacity
-                    .combined(with: .move(edge: .top))
-                  )
+                .padding(.top, 6)
+                .transition(
+                  .opacity
+                  .combined(with: .move(edge: .top))
+                )
               }
             }
-            .frame(maxWidth: .infinity, minHeight: 80)
+            .frame(maxWidth: .infinity, minHeight: 80, alignment: .top)
             .padding(.horizontal)
             .verticalGradientMaskWithPaddings(top: 12, topOpacity: 0.5)
+            
+            Spacer()
+            
+            NearestCityPanelView(
+              selectedCityId: $store.selectedCityId,
+              nearestCity: store.state.nearestCity,
+              nearestCityRequestState: store.state.nearestCityRequestState,
+              userCoordinate: store.state.userCoordinate,
+              onTapDefineUserLocation: { store.send(.tapDefineUserLocation) }
+            )
+            .onGeometryChange(
+              for: CGFloat.self,
+              of: { proxy in proxy.size.height + proxy.safeAreaInsets.bottom },
+              action: { scrollBottomInset = $0 }
+            )
           }
           .animation(.smooth, value: isShowQueryToast)
         }
@@ -147,6 +184,15 @@ public struct CitySelectionView: View {
     .fixedSize(horizontal: false, vertical: true)
     .animation(animation, value: isSearchFocused)
     .padding(EdgeInsets(top: 0, leading: 16, bottom: 2, trailing: 16))
+  }
+  
+  private func scrollInsets() -> EdgeInsets {
+    .init(
+      top: scrollTopInset,
+      leading: .zero,
+      bottom: scrollBottomInset,
+      trailing: .zero
+    )
   }
 }
 

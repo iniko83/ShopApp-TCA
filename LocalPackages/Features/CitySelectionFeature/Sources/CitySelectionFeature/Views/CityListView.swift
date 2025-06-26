@@ -12,77 +12,59 @@ struct CityListView: View {
   @Binding var selectedCityId: Int?
   @Binding var sections: [CityTableSection]
   
+  @State private var scrollPositionCityId: Int? // city.id
+  
   private let cities: [City]
-
-  private let nearestCity: City?
-  private let nearestCityRequestState: RequestLocationState
   private let userCoordinate: Coordinate?
   
-  private let onAction: (Action) -> Void
+  private let insets: EdgeInsets
   
   init(
     selectedCityId: Binding<Int?>,
     sections: Binding<[CityTableSection]>,
     cities: [City],
-    nearestCity: City?,
-    nearestCityRequestState: RequestLocationState,
     userCoordinate: Coordinate?,
-    onAction: @escaping (Action) -> Void
+    insets: EdgeInsets
   ) {
     _selectedCityId = selectedCityId
     _sections = sections
     self.cities = cities
-    self.nearestCity = nearestCity
-    self.nearestCityRequestState = nearestCityRequestState
     self.userCoordinate = userCoordinate
-    self.onAction = onAction
+    self.insets = insets
   }
   
   var body: some View {
-    ZStack {
-      ScrollView {
-        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-          ForEach(sections, id: \.id) { section in
-            Section(
-              content: {
-                ForEach(section.ids, id: \.self) { id in
-                  if let city = cities[safe: id] {
-                    CityRowView(
-                      selectedCityId: $selectedCityId,
-                      city: city,
-                      userCoordinate: userCoordinate
-                    )
-                    .animation(.rowSelection, value: selectedCityId)
-                  }
+    ScrollView {
+      LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+        ForEach(sections, id: \.id) { section in
+          Section(
+            content: {
+              ForEach(section.ids, id: \.self) { id in
+                if let city = cities[safe: id] {
+                  CityRowView(
+                    selectedCityId: $selectedCityId,
+                    city: city,
+                    userCoordinate: userCoordinate
+                  )
+                  .animation(.rowSelection, value: selectedCityId)
                 }
-              },
-              header: { CitySectionHeaderView(kind: section.kind) }
-            )
-          }
-        }
-        .animation(.smooth, value: sections)
-      }
-      
-      VStack {
-        if let nearestCity {
-          // FIXME: add nearest city when cities & location managers implemented in store
-        } else {
-          DefineNearestCityButton(
-            isProcessing: nearestCityRequestState.isProcessing,
-            action: { onAction(.tapDefineUserLocation) }
+              }
+            },
+            header: { CitySectionHeaderView(kind: section.kind) }
           )
-          .shadow(color: .mainBackground.opacity(0.2), radius: 6)
+          .scrollTargetLayout()
         }
       }
-      .padding()
-      .frame(maxHeight: .infinity, alignment: .bottom)
-      .ignoresSafeArea(.keyboard, edges: .bottom)
+      .animation(.smooth, value: sections)
     }
-  }
-}
-
-extension CityListView {
-  enum Action {
-    case tapDefineUserLocation
+    .contentMargins(.all, insets, for: .automatic)
+    // FIXME: sometimes scroll animation position cell at header place
+    // FIXME: may be solution: https://stackoverflow.com/a/78033285
+    .scrollPosition(id: $scrollPositionCityId)
+    .animation(.smooth, value: scrollPositionCityId)
+    .onChange(of: sections) { (_, newValue) in
+      guard let id = newValue.first?.ids.first else { return }
+      scrollPositionCityId = id
+    }
   }
 }

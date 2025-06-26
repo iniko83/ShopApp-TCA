@@ -15,29 +15,35 @@ public struct InputFieldButtonStyle: ButtonStyle {
   private let backgroundColor: Color
   private let borderColor: Color
   
+  private let isTranslucent: Bool
+  
   private let animation: Animation
   
   public init(
     isFocused: Binding<Bool>,
     backgroundColor: Color,
     borderColor: Color,
+    isTranslucent: Bool = true,
     animation: Animation = .smooth
   ) {
     _isFocused = isFocused
     self.backgroundColor = backgroundColor
     self.borderColor = borderColor
+    self.isTranslucent = isTranslucent
     self.animation = animation
   }
   
   public init(
     isFocused: Binding<Bool>,
     color: Color,
+    isTranslucent: Bool = true,
     animation: Animation = .smooth
   ) {
     self.init(
       isFocused: isFocused,
       backgroundColor: color.opacity(0.2),
       borderColor: color.opacity(1),
+      isTranslucent: isTranslucent,
       animation: animation
     )
   }
@@ -49,7 +55,10 @@ public struct InputFieldButtonStyle: ButtonStyle {
     let lineWidth: CGFloat = isBordered ? 1.5 : 0
     
     return configuration.label
-      .background(backgroundColor)
+      .background(
+        backgroundColor
+          .if(isTranslucent) { $0.background(.ultraThinMaterial) }
+      )
       .cornerRadius(.cornerRadius)
       .overlay(
         RoundedRectangle(cornerRadius: .cornerRadius)

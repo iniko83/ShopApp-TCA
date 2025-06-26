@@ -148,13 +148,6 @@ public struct CitySelectionFeature {
       case cancel
       case openApplicationSettings
     }
-
-    init(action: CityListView.Action) {
-      switch action {
-      case .tapDefineUserLocation:
-        self = .tapDefineUserLocation
-      }
-    }
   }
   
   enum CancelId {
