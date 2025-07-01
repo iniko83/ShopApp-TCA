@@ -57,6 +57,7 @@ struct CityListView: View {
       }
       .animation(.smooth, value: sections)
     }
+    .scrollClipDisabled()
     .contentMargins(.all, insets, for: .automatic)
     // FIXME: sometimes scroll animation position cell at header place
     // FIXME: may be solution: https://stackoverflow.com/a/78033285

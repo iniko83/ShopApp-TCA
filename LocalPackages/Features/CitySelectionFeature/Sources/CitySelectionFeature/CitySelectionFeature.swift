@@ -94,11 +94,7 @@ public struct CitySelectionFeature {
       }
     }
     
-    mutating fileprivate func setUserCoordinateRequestState(_ value: RequestLocationState) {
-      userCoordinateRequestState = value
-      updateNearestCityRequestState()
-    }
-    
+    // MARK: Nearest city support
     mutating fileprivate func setNearestCity(_ value: City?) {
       // FIXME: debug log
       if let value {
@@ -106,6 +102,11 @@ public struct CitySelectionFeature {
       }
       
       nearestCity = value
+      updateNearestCityRequestState()
+    }
+    
+    mutating fileprivate func setUserCoordinateRequestState(_ value: RequestLocationState) {
+      userCoordinateRequestState = value
       updateNearestCityRequestState()
     }
     

@@ -41,7 +41,7 @@ struct CityToastListView: View {
             ToastView(item)
               .transition(
                 .opacity
-                  .combined(with: .move(edge: .bottom))
+                .combined(with: .move(edge: .bottom))
               )
           }
         }
@@ -56,13 +56,14 @@ struct CityToastListView: View {
         )
       }
       .scrollIndicators(.hidden)
-      .frame(height: contentHeight)
       .contentMargins(.vertical, scrollVerticalInset)
       .scrollBounceBehavior(.basedOnSize, axes: .vertical)
+      .frame(height: contentHeight)
       .animation(.smooth, value: items)
       .animation(.smooth, value: contentHeight)
     }
     .verticalGradientMask(padding: scrollVerticalInset)
+    .padding(.vertical, -12)
   }
   
   @ViewBuilder private func ToastView(_ item: CityToastItem) -> some View {
