@@ -35,7 +35,10 @@ import Utility
     ]
     
     for expectation in expectations {
-      let cityIds = await engine.search(query: expectation.searchQuery)
+      let searchResult = await engine.search(unemptyQuery: expectation.searchQuery)
+      let cityIds = searchResult.sections
+        .map { $0.ids }
+        .flatMap { $0 }
       #expect(cityIds == expectation.cityIds)
     }
   }
