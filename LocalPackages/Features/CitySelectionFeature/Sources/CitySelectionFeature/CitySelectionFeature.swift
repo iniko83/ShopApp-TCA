@@ -255,6 +255,8 @@ public struct CitySelectionFeature {
           
         case \.selectedCityId:
           if let cityId = state.selectedCityId {
+            state.removeToast(.citySelectionRequired)
+            
             // FIXME: debug log
             print("select city with id: \(cityId)")
           }

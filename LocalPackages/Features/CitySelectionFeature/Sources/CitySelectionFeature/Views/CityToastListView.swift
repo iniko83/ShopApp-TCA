@@ -45,6 +45,7 @@ struct CityToastListView: View {
               )
           }
         }
+        .frame(maxWidth: .infinity)
         .padding(.horizontal)
         .onGeometryChange(
           for: CGFloat.self,
