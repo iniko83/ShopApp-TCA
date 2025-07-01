@@ -10,7 +10,7 @@ import SwiftUI
 extension View {
   public func verticalGradientMask(
     padding: Double,
-    edgeOpacity: Double = 1
+    edgeOpacity: Double = 0
   ) -> some View {
     modifier(
       VerticalGradientMaskModifier(

@@ -41,6 +41,8 @@ public struct CitySelectionFeature {
     
     private(set) var nearestCity: City?
     
+    private var toasts = [CityToast]()
+    
     // dependent
     fileprivate(set) var nearestCityRequestState = RequestLocationState() // by userCoordinateRequestState & nearestCity
     
@@ -50,10 +52,15 @@ public struct CitySelectionFeature {
     fileprivate var searchEngine = CitySearchEngine()
     private(set) var isInitialized = false
     fileprivate(set) var isWantUserCoordinate = false
+    private(set) var toastItems = [CityToastItem]()
     
     var cities: [City] { searchEngine.cities }
     
     public init() {}
+    
+    func isNeedSelectCity() -> Bool {
+      selectedCityId == nil
+    }
    
     fileprivate func isNeedRequestSearchEngine() -> Bool {
       searchEngine.isEmpty() && searchEngineRequestState != .loading
@@ -65,6 +72,12 @@ public struct CitySelectionFeature {
     
     mutating fileprivate func initialize(isLocationServiceAuthorized: Bool) {
       isWantUserCoordinate = isLocationServiceAuthorized
+      
+      let toasts: [CityToast] = isNeedSelectCity()
+        ? [.init(item: .citySelectionRequired)]
+        : []
+      updateToasts(toasts)
+      
       isInitialized = true
     }
     
@@ -108,6 +121,56 @@ public struct CitySelectionFeature {
       }
       nearestCityRequestState = value
     }
+
+    // MARK: Toast support
+    mutating fileprivate func displayToastNearestCityFailure() {
+      let item = CityToastItem.nearestCityFetchFailure
+      var toasts = self.toasts.filter { $0.item != item }
+      
+      let toast = CityToast(
+        item: item,
+        timeoutStamp: Timestamp.timeout(3)
+      )
+      toasts.append(toast)
+      
+      updateToasts(toasts)
+    }
+    
+    fileprivate func nearestTimeoutDelay() -> TimeInterval? {
+      let timeout = toasts.reduce(nil) { (partialResult, toast) -> TimeInterval? in
+        guard let timestamp = toast.timeoutStamp else { return partialResult }
+        
+        let result: TimeInterval
+        if let partialResult {
+          result = min(timestamp, partialResult)
+        } else {
+          result = timestamp
+        }
+        return result
+      }
+      
+      guard let timeout else { return nil }
+      return max(0, timeout - Timestamp.now())
+    }
+    
+    mutating fileprivate func removeExpiredToasts() {
+      let timestamp = Timestamp.now()
+      toasts.removeAll { toast -> Bool in // isShouldBeRemoved
+        guard let timeout = toast.timeoutStamp else { return false }
+        return timeout < timestamp
+      }
+      updateToasts(toasts)
+    }
+    
+    mutating fileprivate func removeToast(_ item: CityToastItem) {
+      toasts.removeAll { $0.item == item }
+      updateToasts(toasts)
+    }
+
+    mutating fileprivate func updateToasts(_ toasts: [CityToast]) {
+      self.toasts = toasts
+      toastItems = toasts.map { $0.item }
+    }
     
     /// Equatable
     public static func == (lhs: State, rhs: State) -> Bool {
@@ -118,6 +181,7 @@ public struct CitySelectionFeature {
       && lhs.userCoordinate == rhs.userCoordinate
       && lhs.userCoordinateRequestState == rhs.userCoordinateRequestState
       && lhs.nearestCity == rhs.nearestCity
+      && lhs.toasts == rhs.toasts
     }
   }
   
@@ -144,6 +208,9 @@ public struct CitySelectionFeature {
     case tapDefineUserLocation
     case tapRequestSearchEngine
     
+    case toastAction(CityToastAction)
+    case toastExpirationTick
+    
     public enum Alert: Int, Equatable, Sendable {
       case cancel
       case openApplicationSettings
@@ -153,6 +220,7 @@ public struct CitySelectionFeature {
   enum CancelId {
     case debounceQueryWarningTimeout
     case debounceSearch
+    case toastTimeout
   }
   
   public var body: some ReducerOf<Self> {
@@ -307,6 +375,16 @@ public struct CitySelectionFeature {
         if state.isNeedRequestSearchEngine() {
           result = requestSearchEngineEffect(state: &state)
         }
+        
+      case let .toastAction(action):
+        switch action {
+        case let .removeItem(toastItem):
+          state.removeToast(toastItem)
+          result = toastExpirationTimerEffect(state: &state)
+        }
+        
+      case .toastExpirationTick:
+        result = toastExpirationTimerEffect(state: &state)
       }
       return result
     }
@@ -320,15 +398,23 @@ public struct CitySelectionFeature {
     let engine = state.searchEngine
     let isNeeded = !engine.isEmpty() && (isWantUpdate || state.nearestCity == nil)
 
-    guard
-      isNeeded,
-      let userCoordinate = state.userCoordinate
-    else { return .none }
-    
-    return .run { send in
-      guard let city = await engine.findNearestCity(to: userCoordinate) else { return }
-      await send(.receiveNearestCity(city))
+    guard isNeeded else { return .none }
+      
+    let result: Effect<Action>
+    if let userCoordinate = state.userCoordinate {
+      result = .run { send in
+        guard let city = await engine.findNearestCity(to: userCoordinate) else { return }
+        await send(.receiveNearestCity(city))
+      }
+    } else {
+      if isWantUpdate {
+        state.displayToastNearestCityFailure()
+        result = toastExpirationTimerEffect(state: &state)
+      } else {
+        result = .none
+      }
     }
+    return result
   }
   
   private func fetchSearchResultEffect(state: inout State) -> Effect<Action> {
@@ -354,6 +440,25 @@ public struct CitySelectionFeature {
         for: .seconds(.searchDelay),
         scheduler: mainQueue
       )
+    }
+    return result
+  }
+  
+  private func toastExpirationTimerEffect(state: inout State) -> Effect<Action> {
+    state.removeExpiredToasts()
+
+    let delay = state.nearestTimeoutDelay()
+    
+    let result: Effect<Action>
+    if let delay {
+      result = .send(.toastExpirationTick)
+        .debounce(
+          id: CancelId.toastTimeout,
+          for: .seconds(delay),
+          scheduler: mainQueue
+        )
+    } else {
+      result = .cancel(id: CancelId.toastTimeout)
     }
     return result
   }

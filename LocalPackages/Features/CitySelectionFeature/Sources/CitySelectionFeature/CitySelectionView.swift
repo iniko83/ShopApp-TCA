@@ -82,19 +82,27 @@ public struct CitySelectionView: View {
             .verticalGradientMaskWithPaddings(top: 12, topOpacity: 0.5)
             
             Spacer()
-            
-            NearestCityPanelView(
-              selectedCityId: $store.selectedCityId,
-              nearestCity: store.state.nearestCity,
-              nearestCityRequestState: store.state.nearestCityRequestState,
-              userCoordinate: store.state.userCoordinate,
-              onTapDefineUserLocation: { store.send(.tapDefineUserLocation) }
-            )
-            .onGeometryChange(
-              for: CGFloat.self,
-              of: { proxy in proxy.size.height + proxy.safeAreaInsets.bottom },
-              action: { scrollBottomInset = $0 }
-            )
+           
+            VStack(spacing: 0) {
+              CityToastListView(
+                items: store.toastItems,
+                onAction: { action in store.send(.toastAction(action)) }
+              )
+              .padding(.bottom, -12)
+              
+              NearestCityPanelView(
+                selectedCityId: $store.selectedCityId,
+                nearestCity: store.state.nearestCity,
+                nearestCityRequestState: store.state.nearestCityRequestState,
+                userCoordinate: store.state.userCoordinate,
+                onTapDefineUserLocation: { store.send(.tapDefineUserLocation) }
+              )
+              .onGeometryChange(
+                for: CGFloat.self,
+                of: { proxy in proxy.size.height + proxy.safeAreaInsets.bottom },
+                action: { scrollBottomInset = $0 }
+              )
+            }
           }
           .animation(.smooth, value: isShowQueryToast)
         }
@@ -177,7 +185,7 @@ public struct CitySelectionView: View {
         .padding(.leading, 8)
         .transition(
           .opacity
-            .combined(with: .move(edge: .trailing))
+          .combined(with: .move(edge: .trailing))
         )
       }
     }

@@ -46,6 +46,7 @@ struct NearestCityPanelView: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .bottom)
+    // FIXME: think about layout
     .ignoresSafeArea(.keyboard, edges: .bottom)
   }
 }
