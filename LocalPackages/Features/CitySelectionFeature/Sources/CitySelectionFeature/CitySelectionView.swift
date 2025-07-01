@@ -9,6 +9,7 @@ import ComposableArchitecture
 import Dependencies
 import SwiftUI
 
+import NetworkClient
 import Utility
 
 public struct CitySelectionView: View {
@@ -32,122 +33,19 @@ public struct CitySelectionView: View {
     ZStack {
       switch store.state.searchEngineRequestState {
       case .default:
-        let invalidSymbols = store.state.queryInvalidSymbols
-        let isShowQueryToast = !invalidSymbols.isEmpty
-        let scrollInsets = scrollInsets()
-        
         ZStack(alignment: .top) {
-          CityListView(
-            selectedCityId: $store.selectedCityId,
-            sections: $store.tableSections,
-            cities: store.state.cities,
-            userCoordinate: store.state.userCoordinate,
-            insets: scrollInsets
-          )
-          .onGeometryChange(
-            for: ProxyData.self,
-            of: { geometry in
-              ProxyData(
-                height: geometry.size.height,
-                safeAreaInsets: geometry.safeAreaInsets
-              )
-            },
-            action: { (data: ProxyData) in
-              contentHeight = data.height
-              safeAreaInsets = data.safeAreaInsets
-            }
-          )
-          .animation(.smooth, value: scrollInsets)
-          
-          Color.clear
-            .scrollEdgeEffect(edgeEffectScrollConfiguration())
-            .onGeometryChange(
-              for: CGFloat.self,
-              of: { $0.size.height },
-              action: { screenHeight = $0 }
-            )
-            .allowsHitTesting(false)
-            .ignoresSafeArea()
-          
-          VStack(spacing: 0) {
-            SearchFieldView()
-              .onGeometryChange(
-                for: Frames.self,
-                of: { geometry in
-                  Frames(
-                    content: geometry.frame(in: .named(CoordinateSpaces.content)),
-                    global: geometry.frame(in: .global)
-                  )
-                },
-                action: { searchFieldFrames = $0 }
-              )
-            
-            VStack {
-              if isShowQueryToast {
-                CityQueryToastView(
-                  invalidSymbols: invalidSymbols,
-                  onClose: { store.send(.hideQueryWarningToast) }
-                )
-                .padding(.top, 6)
-                .transition(
-                  .opacity
-                    .combined(with: .move(edge: .top))
-                )
-              }
-            }
-            .frame(maxWidth: .infinity, minHeight: 80, alignment: .top)
-            .padding(.horizontal)
-            .verticalGradientMaskWithPaddings(top: 12, topOpacity: 0.5)
-            
-            Spacer()
-          }
-          .animation(.smooth, value: isShowQueryToast)
-           
-          VStack(spacing: 0) {
-            Spacer()
-            
-            CityToastListView(
-              items: store.toastItems,
-              onAction: { action in store.send(.toastAction(action)) }
-            )
-             
-            NearestCityPanelView(
-              selectedCityId: $store.selectedCityId,
-              nearestCity: store.state.nearestCity,
-              nearestCityRequestState: store.state.nearestCityRequestState,
-              userCoordinate: store.state.userCoordinate,
-              onTapDefineUserLocation: { store.send(.tapDefineUserLocation) }
-            )
-            .onGeometryChange(
-              for: Frames.self,
-              of: { geometry in
-                Frames(
-                  content: geometry.frame(in: .named(CoordinateSpaces.content)),
-                  global: geometry.frame(in: .global)
-                )
-              },
-              action: { bottomPanelFrames = $0 }
-            )
-          }
+          CitiesView()
+          EdgeEffectView()
+          SearchPanelView()
+          BottomPanelView()
         }
         .coordinateSpace(name: CoordinateSpaces.content)
-        .animation(.smooth, value: scrollInsets)
         
       case .loading:
-        ActivityView(style: .ballRotateChase)
-          .activitySize(.screen)
-          .tint(.blue)
-          .opacity(0.5)
+        LoadingCitiesView()
         
       case let .error(error):
-        RequestErrorView(
-          configuration: .init(
-            error: error,
-            message: "Не удалось загрузить список городов."
-          ),
-          retryAction: { store.send(.tapRequestSearchEngine) }
-        )
-        .padding()
+        ErrorView(error: error)
       }
     }
     .if(store.state.isInitialized) { content in
@@ -157,6 +55,91 @@ public struct CitySelectionView: View {
     .onAppear {
       store.send(.onAppear)
     }
+  }
+  
+  @ViewBuilder private func BottomPanelView() -> some View {
+    VStack(spacing: 0) {
+      Spacer()
+      
+      CityToastListView(
+        items: store.toastItems,
+        onAction: { action in store.send(.toastAction(action)) }
+      )
+      
+      NearestCityPanelView(
+        selectedCityId: $store.selectedCityId,
+        nearestCity: store.state.nearestCity,
+        nearestCityRequestState: store.state.nearestCityRequestState,
+        userCoordinate: store.state.userCoordinate,
+        onTapDefineUserLocation: { store.send(.tapDefineUserLocation) }
+      )
+      .onGeometryChange(
+        for: Frames.self,
+        of: { geometry in
+          Frames(
+            content: geometry.frame(in: .named(CoordinateSpaces.content)),
+            global: geometry.frame(in: .global)
+          )
+        },
+        action: { bottomPanelFrames = $0 }
+      )
+    }
+  }
+  
+  @ViewBuilder private func CitiesView() -> some View {
+    let scrollInsets = scrollInsets()
+    
+    CityListView(
+      selectedCityId: $store.selectedCityId,
+      sections: $store.tableSections,
+      cities: store.state.cities,
+      userCoordinate: store.state.userCoordinate,
+      insets: scrollInsets
+    )
+    .onGeometryChange(
+      for: ProxyData.self,
+      of: { geometry in
+        ProxyData(
+          height: geometry.size.height,
+          safeAreaInsets: geometry.safeAreaInsets
+        )
+      },
+      action: { (data: ProxyData) in
+        contentHeight = data.height
+        safeAreaInsets = data.safeAreaInsets
+      }
+    )
+    .animation(.smooth, value: scrollInsets)
+  }
+  
+  @ViewBuilder private func EdgeEffectView() -> some View {
+    Color.clear
+      .scrollEdgeEffect(edgeEffectScrollConfiguration())
+      .onGeometryChange(
+        for: CGFloat.self,
+        of: { $0.size.height },
+        action: { screenHeight = $0 }
+      )
+      .allowsHitTesting(false)
+      .ignoresSafeArea()
+  }
+  
+  @ViewBuilder private func ErrorView(error: RequestError) -> some View {
+    RequestErrorView(
+      configuration: .init(
+        error: error,
+        message: "Не удалось загрузить список городов."
+      ),
+      retryAction: { store.send(.tapRequestSearchEngine) }
+    )
+    .padding()
+  }
+  
+  @ViewBuilder private func LoadingCitiesView() -> some View {
+    ActivityView(style: .ballRotateChase)
+      .activitySize(.screen)
+      .tint(.blue)
+      .opacity(0.5)
   }
   
   @ViewBuilder private func SearchFieldView() -> some View {
@@ -220,6 +203,45 @@ public struct CitySelectionView: View {
     .padding(EdgeInsets(top: 0, leading: 16, bottom: 2, trailing: 16))
   }
   
+  @ViewBuilder private func SearchPanelView() -> some View {
+    let invalidSymbols = store.state.queryInvalidSymbols
+    let isShowQueryToast = !invalidSymbols.isEmpty
+    
+    VStack(spacing: 0) {
+      SearchFieldView()
+        .onGeometryChange(
+          for: Frames.self,
+          of: { geometry in
+            Frames(
+              content: geometry.frame(in: .named(CoordinateSpaces.content)),
+              global: geometry.frame(in: .global)
+            )
+          },
+          action: { searchFieldFrames = $0 }
+        )
+      
+      VStack {
+        if isShowQueryToast {
+          CityQueryToastView(
+            invalidSymbols: invalidSymbols,
+            onClose: { store.send(.hideQueryWarningToast) }
+          )
+          .padding(.top, 6)
+          .transition(
+            .opacity
+            .combined(with: .move(edge: .top))
+          )
+        }
+      }
+      .frame(maxWidth: .infinity, minHeight: 80, alignment: .top)
+      .padding(.horizontal)
+      .verticalGradientMaskWithPaddings(top: 12, topOpacity: 0.5)
+      
+      Spacer()
+    }
+    .animation(.smooth, value: isShowQueryToast)
+  }
+  
   private func scrollInsets() -> EdgeInsets {
     .init(
       top: searchFieldFrames.content.height,
@@ -254,7 +276,7 @@ public struct CitySelectionView: View {
 }
 
 extension CitySelectionView {
-  private enum CoordinateSpaces: String, Hashable {
+  private enum CoordinateSpaces {
     case content
   }
 
