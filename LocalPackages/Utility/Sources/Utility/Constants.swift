@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+public extension Animation {
+  static let keyboard = Animation.interpolatingSpring(.keyboard)
+}
+
 public extension Color {
   static let cellHighlighted = Color.dynamicRgbaHex(dark: 0xd9d9d919, light: 0xcdcdcd19)
 
@@ -28,6 +32,10 @@ public extension EdgeInsets {
 
 public extension Locale {
   static let russian = Locale(identifier: "ru_RU")
+}
+
+public extension Spring {
+  static let keyboard = Spring(mass: 3, stiffness: 1000, damping: 500)
 }
 
 public extension String {

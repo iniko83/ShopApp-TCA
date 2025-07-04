@@ -58,13 +58,15 @@ public struct CitySelectionView: View {
   }
   
   @ViewBuilder private func BottomPanelView() -> some View {
+    ZStack {
+      BottomToastPanelView()
+      BottomNearestCityView()
+    }
+  }
+  
+  @ViewBuilder private func BottomNearestCityView() -> some View {
     VStack(spacing: 0) {
       Spacer()
-      
-      CityToastListView(
-        items: store.toastItems,
-        onAction: { action in store.send(.toastAction(action)) }
-      )
       
       NearestCityPanelView(
         selectedCityId: $store.selectedCityId,
@@ -84,6 +86,24 @@ public struct CitySelectionView: View {
         action: { bottomPanelFrames = $0 }
       )
     }
+    .ignoresSafeArea(.keyboard)
+  }
+  
+  @ViewBuilder private func BottomToastPanelView() -> some View {
+    let isKeyboardShown = safeAreaInsets.bottom > 100
+    let offset = isKeyboardShown ? 0 : -bottomPanelFrames.content.height
+    
+    VStack(spacing: 0) {
+      Spacer()
+      
+      CityToastListView(
+        items: store.toastItems,
+        onAction: { action in store.send(.toastAction(action)) }
+      )
+      .padding(.bottom)
+    }
+    .offset(y: offset)
+    .animation(.keyboard, value: offset)
   }
   
   @ViewBuilder private func CitiesView() -> some View {
