@@ -51,6 +51,7 @@ struct CityContentView: View, Identifiable {
       }
     }
     .frame(minHeight: 24)
+    .geometryGroup()
     .animation(.smooth, value: distanceText)
     .allowsHitTesting(false)
   }

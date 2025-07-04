@@ -11,9 +11,23 @@ import SwiftUI
 
 struct CitySectionHeaderView: View {
   private let text: String
+
+  private let isLeading: Bool
+  private let gradientColor: Color
+  
+  init(
+    text: String,
+    isLeading: Bool = false,
+    gradientColor: Color = .mainAccent
+  ) {
+    self.text = text
+    self.isLeading = isLeading
+    self.gradientColor = gradientColor
+  }
   
   init(kind: CityTableSection.Kind) {
-    text = kind.headerTitle()
+    let text = kind.headerTitle()
+    self.init(text: text)
   }
   
   var body: some View {
@@ -21,36 +35,53 @@ struct CitySectionHeaderView: View {
       Color.clear
         .frame(height: .zero)
     } else {
+      let alignment: Alignment = isLeading ? .leading : .trailing
+      let textAlignment: TextAlignment = isLeading ? .leading : .trailing
+      
       ZStack {
         Color.clear
           .background(.ultraThinMaterial)
-          .mask(GradientBackgroundView())
+          .mask(BackgroundView(isSemitransparent: false))
         
         Text(text)
           .fontWeight(.medium)
           .foregroundStyle(.black.opacity(0.8))
-          .multilineTextAlignment(.trailing)
-          .frame(maxWidth: .infinity, alignment: .trailing)
+          .multilineTextAlignment(textAlignment)
+          .frame(maxWidth: .infinity, alignment: alignment)
           .padding(EdgeInsets(horizontal: 16, vertical: 4))
-          .background(
-            GradientBackgroundView(colorOpacity: 0.4)
-          )
+          .background(BackgroundView(isSemitransparent: true))
       }
     }
+  }
+  
+  @ViewBuilder private func BackgroundView(isSemitransparent: Bool) -> some View {
+    let opacity: Double = isSemitransparent ? 0.4 : 1
+    let color = gradientColor.opacity(opacity)
+    let anchor: UnitPoint = isLeading ? .bottomLeading : .bottomTrailing
+    
+    GradientBackgroundView(
+      color: color,
+      anchor: anchor
+    )
   }
 }
 
 struct GradientBackgroundView: View {
-  private let colorOpacity: CGFloat
+  private let color: Color
+  private let anchor: UnitPoint
   
-  init(colorOpacity: CGFloat = 1) {
-    self.colorOpacity = colorOpacity
+  init(
+    color: Color = .mainAccent,
+    anchor: UnitPoint = .bottomTrailing
+  ) {
+    self.color = color
+    self.anchor = anchor
   }
   
   var body: some View {
     ZStack {
       let stops: [Gradient.Stop] = [
-        .init(color: .mainAccent.opacity(colorOpacity), location: 0),
+        .init(color: color, location: 0),
         .init(color: .clear, location: 0.9),
         .init(color: .clear, location: 1)
       ]
@@ -58,7 +89,7 @@ struct GradientBackgroundView: View {
       
       RadialGradient(
         stops: stops,
-        center: .bottomTrailing,
+        center: anchor,
         startRadius: 5,
         endRadius: endRadius
       )
@@ -100,7 +131,7 @@ private extension CityTableSection.Kind {
       .frame(height: 200)
       .border(Color.blue.opacity(0.1))
     
-    GradientBackgroundView()
+    GradientBackgroundView(anchor: .bottomLeading)
       .frame(height: 200)
       .background(.blue.opacity(0.2))
       .border(Color.blue.opacity(0.2))

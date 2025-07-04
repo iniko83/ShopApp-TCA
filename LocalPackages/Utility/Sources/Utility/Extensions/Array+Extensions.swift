@@ -11,6 +11,13 @@ extension Array {
   }
 }
 
+extension Array where Element: Equatable {
+  @inlinable public mutating func removeFirst(where predicate: (Element) -> Bool) {
+    guard let index = firstIndex(where: predicate) else { return }
+    remove(at: index)
+  }
+}
+
 // Based on: [ https://stackoverflow.com/a/37560630 ]
 extension Array {
   public subscript(safe range: Range<Int>) -> ArraySlice<Element> {
