@@ -12,7 +12,7 @@ import os.lock
 
 /*
  Possible async/await problems explanation here:
- https://forums.swift.org/t/bridging-the-delegate-pattern-to-asyncstream-with-swift6-and-sendability-issues/75754/6
+ [ https://forums.swift.org/t/bridging-the-delegate-pattern-to-asyncstream-with-swift6-and-sendability-issues/75754/6 ]
  */
 
 fileprivate typealias RequestLocationContinuation = UnsafeContinuation<RequestLocationResult, Never>

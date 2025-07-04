@@ -10,17 +10,9 @@ import Network
 import os.lock
 
 final class NetworkMonitor: @unchecked Sendable {
-  private var status: NetworkStatus?
-  
   private let monitor = NWPathMonitor()
   private let monitorQueue = DispatchQueue(label: "ShopApp.NetworkMonitor")
 
-  private var streamsCounter: Int = 0 {
-    didSet {
-      isMonitoring = streamsCounter > 0
-    }
-  }
-  
   private var isMonitoring = false {
     didSet {
       guard isMonitoring != oldValue else { return }
@@ -42,16 +34,16 @@ final class NetworkMonitor: @unchecked Sendable {
         types: types
       )
       
-      let status = lockedData.withLock {
-        $0.itemsByIds[id] = item
-        self.streamsCounter = $0.itemsByIds.count
-        return self.status
+      let status = lockedData.withLock { data in
+        data.appendItem(item, id: id)
+        self.isMonitoring = data.isMonitoring()
+        return data.status
       }
       
       continuation.onTermination = { [mutex = lockedData] _ in
-        mutex.withLock {
-          $0.itemsByIds[id] = nil
-          self.streamsCounter = $0.itemsByIds.count
+        mutex.withLock { data in
+          data.removeItem(id: id)
+          self.isMonitoring = data.isMonitoring()
         }
       }
       
@@ -72,16 +64,19 @@ final class NetworkMonitor: @unchecked Sendable {
     } else {
       monitor.cancel()
       monitor.pathUpdateHandler = nil
-      status = nil
     }
   }
   
   private func receiveStatus(_ status: NetworkStatus) {
     lockedData.withLock { data in
-      self.status = status
+      data.status = status
       
-      for (_, item) in data.itemsByIds {
+      for (_, var item) in data.itemsByIds {
         let isConnected = status.isConnected(item.types)
+        
+        guard item.isConnected != isConnected else { continue }
+        item.isConnected = isConnected
+        
         item.continuation.yield(isConnected)
       }
     }
@@ -91,8 +86,27 @@ final class NetworkMonitor: @unchecked Sendable {
 private struct Item {
   let continuation: AsyncStream<Bool>.Continuation
   let types: Set<NetworkType>
+  
+  var isConnected: Bool?
 }
 
 private struct ProtectedData {
-  var itemsByIds = [UUID: Item]()
+  var status: NetworkStatus?
+
+  private(set) var itemsByIds = [UUID: Item]()
+
+  func isMonitoring() -> Bool {
+    itemsByIds.count > 0
+  }
+  
+  mutating func appendItem(_ item: Item, id: UUID) {
+    itemsByIds[id] = item
+  }
+  
+  mutating func removeItem(id: UUID) {
+    itemsByIds[id] = nil
+    
+    guard !itemsByIds.isEmpty else { return }
+    status = nil
+  }
 }

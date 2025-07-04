@@ -100,7 +100,7 @@ struct CityToastListView: View {
       .toast(
         style,
         cornerRadius: 10,
-        padding: EdgeInsets(horizontal: 8, vertical: 4)
+        padding: EdgeInsets(horizontal: 8, vertical: 8)
       )
   }
 }

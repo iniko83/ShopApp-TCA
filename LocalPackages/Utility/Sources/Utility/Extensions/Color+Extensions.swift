@@ -43,7 +43,7 @@ extension Color {
 }
 
 extension Color {
-  // Based on: https://tanaschita.com/swiftui-dynamic-colors/
+  // Based on: [ https://tanaschita.com/swiftui-dynamic-colors/ ]
   // NOTE: Color func resolve(in:) used outside standard behavior.
   public static func dynamic(dark: UIColor, light: UIColor) -> Color {
     let uiColor = UIColor { traitCollection -> UIColor in
@@ -68,7 +68,7 @@ extension Color {
 }
 
 extension Color {
-  // Based on: https://stackoverflow.com/a/71689567
+  // Based on: [ https://stackoverflow.com/a/71689567 ]
   public func adjust(
     hue: Double = 0,
     saturation: Double = 0,

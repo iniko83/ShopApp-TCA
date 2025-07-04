@@ -8,8 +8,8 @@
 import SwiftUI
 
 /* Inspired by:
- https://github.com/ninjaprox/NVActivityIndicatorView
- https://stackoverflow.com/a/59171234
+ [ https://github.com/ninjaprox/NVActivityIndicatorView ]
+ [ https://stackoverflow.com/a/59171234 ]
  */
 
 struct ActivityBallRotateChaseView: View {

@@ -5,7 +5,7 @@
 //  Created by Igor Nikolaev on 25.06.2025.
 //
 
-// NOTE: https://github.com/pointfreeco/swift-composable-architecture/blob/main/Examples/SyncUps/SyncUps/Dependencies/OpenSettings.swift
+// NOTE: [ https://github.com/pointfreeco/swift-composable-architecture/blob/main/Examples/SyncUps/SyncUps/Dependencies/OpenSettings.swift ]
 
 import Dependencies
 import UIKit

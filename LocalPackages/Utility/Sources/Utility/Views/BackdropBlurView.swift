@@ -6,7 +6,7 @@
 //
 
 /*
- Based on: https://stackoverflow.com/a/73950386
+ Based on: [ https://stackoverflow.com/a/73950386 ]
  NOTE: For correct blur without artifacts, see Preview section.
  */
 

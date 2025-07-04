@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-// Based on: https://www.reddit.com/r/iOSProgramming/comments/1ejoppj/cool_swiftui_gradient_that_users_love/
+// Based on: [ https://www.reddit.com/r/iOSProgramming/comments/1ejoppj/cool_swiftui_gradient_that_users_love/ ]
 
 struct CitySectionHeaderView: View {
   private let text: String

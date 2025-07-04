@@ -19,7 +19,7 @@ extension Array {
     lowerBound(compare: compare, range: (0..<count))
   }
   
-  // Based on: https://takeuforward.org/arrays/implement-lower-bound-bs-2/
+  // Based on: [ https://takeuforward.org/arrays/implement-lower-bound-bs-2/ ]
   public func lowerBound(
     compare: (Element) -> ComparisonResult,
     range: Range<Int>
@@ -49,7 +49,7 @@ extension Array {
     upperBound(compare: compare, range: (0..<count))
   }
   
-  // Based on: https://takeuforward.org/arrays/implement-upper-bound/
+  // Based on: [ https://takeuforward.org/arrays/implement-upper-bound/ ]
   public func upperBound(
     compare: (Element) -> ComparisonResult,
     range: Range<Int>

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-// NOTE: Text position animation bug (geometryGroup): https://stackoverflow.com/a/77335507
+// NOTE: Text position animation bug (geometryGroup): [ https://stackoverflow.com/a/77335507 ]
 
 extension View {
   public func toast(

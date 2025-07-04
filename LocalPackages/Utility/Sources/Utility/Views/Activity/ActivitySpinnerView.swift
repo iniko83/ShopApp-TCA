@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-// Inspired by: https://youtu.be/K3wvbZ2gh5o
+// Inspired by: [ https://youtu.be/K3wvbZ2gh5o ]
 
 extension ActivitySpinnerView {
   typealias Configuration = Activity.SpinnerConfiguration

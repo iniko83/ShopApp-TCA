@@ -11,7 +11,7 @@ extension Array {
   }
 }
 
-// Based on: https://stackoverflow.com/a/37560630
+// Based on: [ https://stackoverflow.com/a/37560630 ]
 extension Array {
   public subscript(safe range: Range<Int>) -> ArraySlice<Element> {
     guard

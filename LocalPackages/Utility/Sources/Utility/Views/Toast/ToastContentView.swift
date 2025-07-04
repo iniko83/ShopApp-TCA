@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-// Initialize explanations: https://stackoverflow.com/a/71383188
+// Initialize explanations: [ https://stackoverflow.com/a/71383188 ]
 
 public struct ToastContentView<Content: View>: View {
   private let style: ToastStyle

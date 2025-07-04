@@ -5,8 +5,8 @@
 //  Created by Igor Nikolaev on 25.06.2025.
 //
 
-// Based on: https://github.com/markiv/SwiftUI-Shimmer
-// Include improvement: https://github.com/markiv/SwiftUI-Shimmer/pull/18
+// Based on: [ https://github.com/markiv/SwiftUI-Shimmer ]
+// Include improvement: [ https://github.com/markiv/SwiftUI-Shimmer/pull/18 ]
 
 import SwiftUI
 
