@@ -43,6 +43,7 @@ public struct CitySelectionInteractor: Sendable {
   public var historyCityIdsStream: @Sendable () -> AsyncStream<[Int]>
   
   // outputs
+  public var removeCityIdFromSelectionHistory: @MainActor @Sendable (Int) -> Void
   public var selectCity: @MainActor @Sendable (City) -> Void
 }
 
@@ -77,6 +78,7 @@ extension CitySelectionInteractor: DependencyKey {
       selectedCityId: { cityService.city()?.id },
       historyCityIds: historyService.ids,
       historyCityIdsStream: historyService.idsStream,
+      removeCityIdFromSelectionHistory: { id in historyService.removeId(id) },
       selectCity: { city in
         cityService.changeCity(city)
         historyService.insertId(city.id)
@@ -92,6 +94,7 @@ extension CitySelectionInteractor: DependencyKey {
       selectedCityId: { cityService.city()?.id },
       historyCityIds: historyService.ids,
       historyCityIdsStream: historyService.idsStream,
+      removeCityIdFromSelectionHistory: { id in historyService.removeId(id) },
       selectCity: { city in
         cityService.changeCity(city)
         historyService.insertId(city.id)

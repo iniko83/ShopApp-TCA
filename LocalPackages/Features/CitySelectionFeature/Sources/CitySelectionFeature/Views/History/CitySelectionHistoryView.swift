@@ -47,6 +47,7 @@ struct CitySelectionHistoryView: View {
         header: { HeaderView() }
       )
     }
+    .animation(.smooth, value: cities)
   }
   
   @ViewBuilder private func HeaderView() -> CitySectionHeaderView {

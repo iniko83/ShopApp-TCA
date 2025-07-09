@@ -68,6 +68,13 @@ final class CitySelectionHistoryStorageService: @unchecked Sendable {
   }
   
   @MainActor
+  func removeCityId(_ id: Int) {
+    cityIdsList.removeItem(id)
+    let ids = cityIdsList.items
+    onChangeCityIds(ids)
+  }
+  
+  @MainActor
   func reset() {
     cityIdsList.removeAll()
     onChangeCityIds([])
@@ -138,6 +145,13 @@ final class CitySelectionHistoryMemoryService: @unchecked Sendable {
   }
   
   @MainActor
+  func removeCityId(_ id: Int) {
+    cityIdsList.removeItem(id)
+    let ids = cityIdsList.items
+    onChangeCityIds(ids)
+  }
+  
+  @MainActor
   func reset() {
     cityIdsList.removeAll()
     onChangeCityIds([])
@@ -159,5 +173,5 @@ final class CitySelectionHistoryMemoryService: @unchecked Sendable {
 
 /// Constants
 private extension Int {
-  static let cityIdsLimit = 3
+  static let cityIdsLimit = 4
 }

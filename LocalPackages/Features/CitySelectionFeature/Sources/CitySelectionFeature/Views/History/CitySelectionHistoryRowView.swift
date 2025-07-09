@@ -63,6 +63,7 @@ struct CitySelectionHistoryRowView: View {
           }
         )
       }
+      .geometryGroup()
       .padding(.cityCell)
     }
   }

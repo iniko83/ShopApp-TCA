@@ -14,7 +14,6 @@ import ComposableArchitecture
 import SwiftUI
 
 import CitySelectionFeature
-import Utility
 
 struct RootView: View {
   var body: some View {
@@ -27,17 +26,10 @@ struct RootView: View {
   
   // FIXME: debug purpose
   @ViewBuilder private func CitySelectionFeatureView() -> some View {
-    let interactor = CitySelectionInteractor.storage(cityKey: StorageKey.userCity)
-    let initialState = CitySelectionFeature.State(
-      selectedCityId: interactor.selectedCityId(),
-      selectionHistoryCityIds: interactor.historyCityIds()
-    )
-    
     CitySelectionView(
       store: Store(
-        initialState: initialState,
-        reducer: { CitySelectionFeature() },
-        withDependencies: { $0.citySelectionInteractor = interactor }
+        initialState: CitySelectionFeature.State(),
+        reducer: { CitySelectionFeature() }
       )
     )
   }

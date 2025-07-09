@@ -24,6 +24,10 @@ public struct LimitedFifoList<Item: Equatable> {
     items = next
   }
   
+  public mutating func removeItem(_ item: Item) {
+    items.removeFirst(where: { $0 == item })
+  }
+  
   public mutating func removeAll() {
     items = []
   }

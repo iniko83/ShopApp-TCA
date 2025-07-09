@@ -52,21 +52,16 @@ public struct CitySelectionFeature {
     // ignored
     public var tableSections = [CityTableSection]()
     fileprivate(set) var cityIds = Set<Int>()
-    fileprivate(set) var visibleHistoryCityIds = [Int]()
+    fileprivate(set) var visibleSelectionHistoryCities = [City]()
     fileprivate var searchEngine = CitySearchEngine()
     private(set) var isInitialized = false
     fileprivate(set) var isWantUserCoordinate = false
     private(set) var toastItems = [CityToastItem]()
     
     var cities: [City] { searchEngine.cities }
+    var isSelectionHistoryVisible: Bool { !visibleSelectionHistoryCities.isEmpty }
     
-    public init(
-      selectedCityId: Int? = nil,
-      selectionHistoryCityIds: [Int] = []
-    ) {
-      self.selectedCityId = selectedCityId
-      setSelectionHistoryCityIds(selectionHistoryCityIds)
-    }
+    public init() {}
     
     func city(id: Int) -> City? {
       searchEngine.cities[safe: id]
@@ -84,7 +79,14 @@ public struct CitySelectionFeature {
       isWantUserCoordinate && userCoordinateRequestState != .processing
     }
     
-    mutating fileprivate func initialize(isLocationServiceAuthorized: Bool) {
+    mutating fileprivate func initialize(
+      selectedCityId: Int?,
+      selectionHistoryCityIds: [Int],
+      isLocationServiceAuthorized: Bool
+    ) {
+      self.selectedCityId = selectedCityId
+      setSelectionHistoryCityIds(selectionHistoryCityIds)
+      
       isWantUserCoordinate = isLocationServiceAuthorized
       
       let toasts: [CityToast] = isNeedSelectCity()
@@ -135,7 +137,12 @@ public struct CitySelectionFeature {
     // MARK: Selection history support
     mutating fileprivate func setSelectionHistoryCityIds(_ ids: [Int]) {
       selectionHistoryCityIds = ids
-      visibleHistoryCityIds = ids.filter { $0 != selectedCityId }
+      
+      visibleSelectionHistoryCities = ids
+        .compactMap { id in
+          guard id != selectedCityId else { return nil }
+          return city(id: id)
+        }
     }
 
     // MARK: Toast support
@@ -218,6 +225,8 @@ public struct CitySelectionFeature {
     
     case receiveNearestCity(City)
     case receiveSearchValidation(CitySearchValidationResult)
+
+    case removeCityIdFromSelectionHistory(Int)
     
     case responseSearch(CitySearchResponse)
     case responseSearchEngine(RequestResult<CitySearchEngine>)
@@ -308,8 +317,21 @@ public struct CitySelectionFeature {
       case .onAppear:
         let isStateUninitialized = !state.isInitialized
         if isStateUninitialized {
+          var selectedCityId: Int?
+          var selectionHistoryCityIds = [Int]()
+          
+          let interactor = self.interactor
+          try? MainActor.assumeIsolated {
+            selectedCityId = interactor.selectedCityId()
+            selectionHistoryCityIds = interactor.historyCityIds()
+          }
+          
           let status = locationService.authorizationStatus()
-          state.initialize(isLocationServiceAuthorized: status.isAuthorized)
+          state.initialize(
+            selectedCityId: selectedCityId,
+            selectionHistoryCityIds: selectionHistoryCityIds,
+            isLocationServiceAuthorized: status.isAuthorized
+          )
         }
         
         var effects = [Effect<Action>]()
@@ -358,6 +380,10 @@ public struct CitySelectionFeature {
         if !effects.isEmpty {
           result = .merge(effects)
         }
+        
+      case let .removeCityIdFromSelectionHistory(id):
+        let interactor = self.interactor
+        Task.onMainActor { interactor.removeCityIdFromSelectionHistory(id) }
         
       case let .responseSearch(response):
         if state.searchQuery == response.query {

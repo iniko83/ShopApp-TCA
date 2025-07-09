@@ -18,10 +18,11 @@ public struct CitySelectionView: View {
   @FocusState private var isSearchFocused: Bool
   @State private var searchText = String.empty
 
-  @State private var contentHeight = CGFloat.zero
+  @State private var isKeyboardShown = false
+
   @State private var screenHeight = CGFloat.zero
-  @State private var safeAreaInsets = EdgeInsets.zero
-  
+  @State private var selectionHistoryHeight = CGFloat.zero
+
   @State private var bottomPanelFrames = Frames()
   @State private var searchFieldFrames = Frames()
     
@@ -36,6 +37,7 @@ public struct CitySelectionView: View {
         ZStack(alignment: .top) {
           CitiesView()
           EdgeEffectView()
+          HistorySelectionPanelView()
           SearchPanelView()
           BottomPanelView()
         }
@@ -90,7 +92,6 @@ public struct CitySelectionView: View {
   }
   
   @ViewBuilder private func BottomToastPanelView() -> some View {
-    let isKeyboardShown = safeAreaInsets.bottom > 100
     let offset = isKeyboardShown ? 0 : -bottomPanelFrames.content.height
     
     VStack(spacing: 0) {
@@ -117,17 +118,9 @@ public struct CitySelectionView: View {
       insets: scrollInsets
     )
     .onGeometryChange(
-      for: ProxyData.self,
-      of: { geometry in
-        ProxyData(
-          height: geometry.size.height,
-          safeAreaInsets: geometry.safeAreaInsets
-        )
-      },
-      action: { (data: ProxyData) in
-        contentHeight = data.height
-        safeAreaInsets = data.safeAreaInsets
-      }
+      for: Bool.self,
+      of: { $0.safeAreaInsets.bottom > 100 },
+      action: { isKeyboardShown = $0 }
     )
     .animation(.smooth, value: scrollInsets)
   }
@@ -153,6 +146,44 @@ public struct CitySelectionView: View {
       retryAction: { store.send(.tapRequestSearchEngine) }
     )
     .padding()
+  }
+  
+  @ViewBuilder private func HistorySelectionPanelView() -> some View {
+    let height = searchFieldFrames.content.height
+    let isSelectionHistoryVisible = store.state.isSelectionHistoryVisible
+    
+    VStack {
+      Spacer()
+        .frame(height: height)
+      
+      if isSelectionHistoryVisible {
+        let padding: CGFloat = 8
+        CitySelectionHistoryView(
+          selectedCityId: $store.selectedCityId,
+          cities: store.state.visibleSelectionHistoryCities,
+          userCoordinate: store.state.userCoordinate,
+          onRemoveCityId: { store.send(.removeCityIdFromSelectionHistory($0)) }
+        )
+        .padding(.bottom, padding)
+        .background(
+          Color.white
+            .verticalGradientMaskWithPaddings(
+              top: 0.5 * padding,
+              bottom: padding
+            )
+        )
+        .onGeometryChange(
+          for: CGFloat.self,
+          of: { $0.size.height },
+          action: { selectionHistoryHeight = $0 }
+        )
+      }
+      
+      Spacer()
+    }
+    .animation(.smooth, value: height)
+    .animation(.smooth, value: isSelectionHistoryVisible)
+    .animation(.smooth, value: selectionHistoryHeight)
   }
   
   @ViewBuilder private func LoadingCitiesView() -> some View {
@@ -262,15 +293,6 @@ public struct CitySelectionView: View {
     .animation(.smooth, value: isShowQueryToast)
   }
   
-  private func scrollInsets() -> EdgeInsets {
-    .init(
-      top: searchFieldFrames.content.height,
-      leading: .zero,
-      bottom: bottomPanelFrames.content.height,
-      trailing: .zero
-    )
-  }
-  
   private func edgeEffectScrollConfiguration() -> EdgeEffect.ScrollConfiguration {
     let contentPadding: CGFloat = 10
     let defaultBottomThreshold: CGFloat = 0.3
@@ -280,7 +302,6 @@ public struct CitySelectionView: View {
       ? screenHeight - (bottomPanelFrames.global.minY + contentPadding)
       : .zero
     
-    let isKeyboardShown = safeAreaInsets.bottom > 100
     let thresholdLocation: CGFloat = isKeyboardShown
       ? defaultBottomThreshold * bottomPanelFrames.global.height / bottomHeight
       : defaultBottomThreshold
@@ -291,6 +312,19 @@ public struct CitySelectionView: View {
         height: bottomHeight,
         thresholdLocation: thresholdLocation
       )
+    )
+  }
+  
+  private func scrollInsets() -> EdgeInsets {
+    let selectionHistoryHeight: CGFloat = store.state.isSelectionHistoryVisible
+      ? self.selectionHistoryHeight
+      : 0
+    
+    return .init(
+      top: searchFieldFrames.content.height + selectionHistoryHeight,
+      leading: .zero,
+      bottom: bottomPanelFrames.content.height,
+      trailing: .zero
     )
   }
 }
@@ -318,11 +352,6 @@ extension CitySelectionView {
         global: .zero
       )
     }
-  }
-  
-  private struct ProxyData: Equatable {
-    let height: CGFloat
-    let safeAreaInsets: EdgeInsets
   }
 }
 

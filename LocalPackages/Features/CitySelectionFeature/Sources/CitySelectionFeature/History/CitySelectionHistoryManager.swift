@@ -15,6 +15,7 @@ struct CitySelectionHistoryManager: Sendable {
   var idsStream: @Sendable () -> AsyncStream<[Int]>
   
   var insertId: @MainActor @Sendable (Int) -> Void
+  var removeId: @MainActor @Sendable (Int) -> Void
   var reset: @MainActor @Sendable () -> Void
 }
 
@@ -47,6 +48,7 @@ extension CitySelectionHistoryManager: DependencyKey {
       ids: service.cityIds,
       idsStream: service.cityIdsStream,
       insertId: { id in service.appendCityId(id) },
+      removeId: { id in service.removeCityId(id) },
       reset: service.reset
     )
   }
@@ -58,6 +60,7 @@ extension CitySelectionHistoryManager: DependencyKey {
       ids: service.cityIds,
       idsStream: service.cityIdsStream,
       insertId: { id in service.appendCityId(id) },
+      removeId: { id in service.removeCityId(id) },
       reset: service.reset
     )
   }
