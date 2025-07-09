@@ -39,10 +39,7 @@ struct CityToastListView: View {
         VStack(spacing: 12) {
           ForEach(items, id: \.hashValue) { item in
             ToastView(item)
-              .transition(
-                .opacity
-                .combined(with: .move(edge: .bottom))
-              )
+              .transition(.opacity.combined(with: .move(edge: .bottom)))
           }
         }
         .frame(maxWidth: .infinity)

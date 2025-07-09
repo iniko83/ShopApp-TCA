@@ -53,7 +53,7 @@ public struct CitySelectionFeature {
     public var tableSections = [CityTableSection]()
     fileprivate(set) var cityIds = Set<Int>()
     fileprivate(set) var visibleSelectionHistoryCities = [City]()
-    fileprivate var searchEngine = CitySearchEngine()
+    private(set) var searchEngine = CitySearchEngine()
     private(set) var isInitialized = false
     fileprivate(set) var isWantUserCoordinate = false
     private(set) var toastItems = [CityToastItem]()
@@ -110,6 +110,11 @@ public struct CitySelectionFeature {
       }
     }
     
+    mutating fileprivate func setSearchEngine(_ engine: CitySearchEngine) {
+      searchEngine = engine
+      updateVisibleSelectionHistoryCities()
+    }
+    
     // MARK: Nearest city support
     mutating fileprivate func setNearestCity(_ value: City?) {
       nearestCity = value
@@ -137,8 +142,11 @@ public struct CitySelectionFeature {
     // MARK: Selection history support
     mutating fileprivate func setSelectionHistoryCityIds(_ ids: [Int]) {
       selectionHistoryCityIds = ids
-      
-      visibleSelectionHistoryCities = ids
+      updateVisibleSelectionHistoryCities()
+    }
+    
+    mutating fileprivate func updateVisibleSelectionHistoryCities() {
+      visibleSelectionHistoryCities = selectionHistoryCityIds
         .compactMap { id in
           guard id != selectedCityId else { return nil }
           return city(id: id)
@@ -395,7 +403,7 @@ public struct CitySelectionFeature {
         switch response {
         case let .success(value):
           state.searchEngineRequestState = .default
-          state.searchEngine = value
+          state.setSearchEngine(value)
           // FIXME: big animation lag on launching app first time after install...
           state.isSearchFocused = true
           

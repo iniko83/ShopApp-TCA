@@ -12,7 +12,7 @@ struct CityListView: View {
   @Binding var selectedCityId: Int?
   @Binding var sections: [CityTableSection]
   
-  @State private var scrollPositionCityId: Int? // city.id
+  @State private var scrollPositionCityId: Int?
   
   private let cities: [City]
   private let userCoordinate: Coordinate?
@@ -57,8 +57,6 @@ struct CityListView: View {
       }
       .animation(.smooth, value: sections)
     }
-    .scrollClipDisabled()
-    // FIXME: SwiftUI don't animate contentMargins :(
     .contentMargins(.all, insets, for: .automatic)
     // FIXME: sometimes scroll animation position cell at header place
     // FIXME: may be solution: https://stackoverflow.com/a/78033285

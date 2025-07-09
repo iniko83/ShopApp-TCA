@@ -108,21 +108,23 @@ public struct CitySelectionView: View {
   }
   
   @ViewBuilder private func CitiesView() -> some View {
-    let scrollInsets = scrollInsets()
+    let topPadding = scrollTopPadding()
     
     CityListView(
       selectedCityId: $store.selectedCityId,
       sections: $store.tableSections,
       cities: store.state.cities,
       userCoordinate: store.state.userCoordinate,
-      insets: scrollInsets
+      insets: scrollInsets()
     )
+    .padding(.top, topPadding)
+    .animation(.smooth, value: topPadding)
+    .scrollClipDisabled()
     .onGeometryChange(
       for: Bool.self,
       of: { $0.safeAreaInsets.bottom > 100 },
       action: { isKeyboardShown = $0 }
     )
-    .animation(.smooth, value: scrollInsets)
   }
   
   @ViewBuilder private func EdgeEffectView() -> some View {
@@ -151,39 +153,45 @@ public struct CitySelectionView: View {
   @ViewBuilder private func HistorySelectionPanelView() -> some View {
     let height = searchFieldFrames.content.height
     let isSelectionHistoryVisible = store.state.isSelectionHistoryVisible
-    
-    VStack {
+    let padding: CGFloat = 12
+
+    VStack(spacing: 0) {
       Spacer()
         .frame(height: height)
       
       if isSelectionHistoryVisible {
-        let padding: CGFloat = 8
-        CitySelectionHistoryView(
-          selectedCityId: $store.selectedCityId,
-          cities: store.state.visibleSelectionHistoryCities,
-          userCoordinate: store.state.userCoordinate,
-          onRemoveCityId: { store.send(.removeCityIdFromSelectionHistory($0)) }
-        )
-        .padding(.bottom, padding)
-        .background(
+        ZStack(alignment: .top) {
           Color.white
+            .frame(height: selectionHistoryHeight)
+            .animation(.smooth, value: selectionHistoryHeight)
             .verticalGradientMaskWithPaddings(
               top: 0.5 * padding,
               bottom: padding
             )
-        )
-        .onGeometryChange(
-          for: CGFloat.self,
-          of: { $0.size.height },
-          action: { selectionHistoryHeight = $0 }
-        )
+          
+          CitySelectionHistoryView(
+            selectedCityId: $store.selectedCityId,
+            cities: store.state.visibleSelectionHistoryCities,
+            userCoordinate: store.state.userCoordinate,
+            onRemoveCityId: { store.send(.removeCityIdFromSelectionHistory($0)) }
+          )
+          .padding(.bottom, padding)
+          .geometryGroup()
+          .onGeometryChange(
+            for: CGFloat.self,
+            of: { $0.size.height },
+            action: { selectionHistoryHeight = $0 }
+          )
+        }
+        .transition(.opacity.combined(with: .move(edge: .top)))
       }
       
       Spacer()
     }
-    .animation(.smooth, value: height)
+    .frame(maxWidth: .infinity)
     .animation(.smooth, value: isSelectionHistoryVisible)
-    .animation(.smooth, value: selectionHistoryHeight)
+    .verticalGradientMaskWithPaddings(top: height)
+    .animation(.smooth, value: height)
   }
   
   @ViewBuilder private func LoadingCitiesView() -> some View {
@@ -243,10 +251,7 @@ public struct CitySelectionView: View {
         .allowsHitTesting(isSearchFocused)
         .fixedSize()
         .padding(.leading, 8)
-        .transition(
-          .opacity
-          .combined(with: .move(edge: .trailing))
-        )
+        .transition(.opacity.combined(with: .move(edge: .trailing)))
       }
     }
     .fixedSize(horizontal: false, vertical: true)
@@ -278,10 +283,7 @@ public struct CitySelectionView: View {
             onClose: { store.send(.hideQueryWarningToast) }
           )
           .padding(.top, 6)
-          .transition(
-            .opacity
-            .combined(with: .move(edge: .top))
-          )
+          .transition(.opacity.combined(with: .move(edge: .top)))
         }
       }
       .frame(maxWidth: .infinity, minHeight: 80, alignment: .top)
@@ -316,16 +318,18 @@ public struct CitySelectionView: View {
   }
   
   private func scrollInsets() -> EdgeInsets {
-    let selectionHistoryHeight: CGFloat = store.state.isSelectionHistoryVisible
-      ? self.selectionHistoryHeight
-      : 0
-    
-    return .init(
-      top: searchFieldFrames.content.height + selectionHistoryHeight,
-      leading: .zero,
-      bottom: bottomPanelFrames.content.height,
-      trailing: .zero
+    .init(
+      top: .scrollAdditionalTopPadding,
+      bottom: isKeyboardShown ? 0 : bottomPanelFrames.content.height
     )
+  }
+  
+  private func scrollTopPadding() -> CGFloat {
+    let isHistoryVisible = store.state.isSelectionHistoryVisible
+    let historyHeight = isHistoryVisible ? selectionHistoryHeight : 0
+    let blockHeight = searchFieldFrames.content.height + historyHeight
+    let result = blockHeight - .scrollAdditionalTopPadding
+    return result
   }
 }
 
@@ -353,6 +357,12 @@ extension CitySelectionView {
       )
     }
   }
+}
+
+
+/// Constants
+private extension CGFloat {
+  static let scrollAdditionalTopPadding: CGFloat = 200
 }
 
 
