@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1A1F24272E01C95000551F6F /* LocationService in Frameworks */ = {isa = PBXBuildFile; productRef = 1A1F24262E01C95000551F6F /* LocationService */; };
 		1A1F24292E01C95600551F6F /* NetworkClient in Frameworks */ = {isa = PBXBuildFile; productRef = 1A1F24282E01C95600551F6F /* NetworkClient */; };
+		1A290FFB2E1BF05D00D581F8 /* CityManager in Frameworks */ = {isa = PBXBuildFile; productRef = 1A290FFA2E1BF05D00D581F8 /* CityManager */; };
 		1AA44A802E02DA1C00671873 /* CitySelectionFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 1AA44A7F2E02DA1C00671873 /* CitySelectionFeature */; };
 		1AAEA7632DFD5D1900D65180 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 1AAEA7622DFD5D1900D65180 /* ComposableArchitecture */; };
 		1AE247F92DFD664900491568 /* Utility in Frameworks */ = {isa = PBXBuildFile; productRef = 1AE247F82DFD664900491568 /* Utility */; };
@@ -62,6 +63,7 @@
 		1AAEA7AE2DFD608E00D65180 /* Exceptions for "LocalPackages" folder in "ShopAppUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CityManager,
 				Features/CitySelectionFeature,
 				LocationService,
 				NetworkClient,
@@ -122,6 +124,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1AAEA7632DFD5D1900D65180 /* ComposableArchitecture in Frameworks */,
+				1A290FFB2E1BF05D00D581F8 /* CityManager in Frameworks */,
 				1AA44A802E02DA1C00671873 /* CitySelectionFeature in Frameworks */,
 				1AE247F92DFD664900491568 /* Utility in Frameworks */,
 				1A1F24292E01C95600551F6F /* NetworkClient in Frameworks */,
@@ -202,6 +205,7 @@
 				1A1F24262E01C95000551F6F /* LocationService */,
 				1A1F24282E01C95600551F6F /* NetworkClient */,
 				1AA44A7F2E02DA1C00671873 /* CitySelectionFeature */,
+				1A290FFA2E1BF05D00D581F8 /* CityManager */,
 			);
 			productName = ShopApp;
 			productReference = 1AFE275E2DFD58A700BE011E /* ShopApp.app */;
@@ -715,6 +719,10 @@
 		1A1F24282E01C95600551F6F /* NetworkClient */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkClient;
+		};
+		1A290FFA2E1BF05D00D581F8 /* CityManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CityManager;
 		};
 		1AA44A7F2E02DA1C00671873 /* CitySelectionFeature */ = {
 			isa = XCSwiftPackageProductDependency;

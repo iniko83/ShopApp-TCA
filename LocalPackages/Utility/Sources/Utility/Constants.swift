@@ -48,3 +48,10 @@ public extension String {
   static let cancellation = "Отмена"
   static let retry = "Повторить"
 }
+
+
+/// Keys
+public enum StorageKey {
+  public static let userCity = "userCity"
+  public static let userCityIdsSelectionHistory = "userCityIdsSelectionHistory"
+}

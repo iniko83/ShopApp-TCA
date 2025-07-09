@@ -6,6 +6,7 @@ import CoreLocation
 import Dependencies
 import SwiftUI
 
+import CityManager
 import LocationService
 import NetworkClient
 import NetworkConnectionService
@@ -18,6 +19,7 @@ public struct CitySelectionFeature {
   @Dependency(\.mainQueue) var mainQueue
   
   @Dependency(\.citySelectionApi) var api: CitySelectionApi
+  @Dependency(\.citySelectionInteractor) var interactor: CitySelectionInteractor
   @Dependency(\.locationService) var locationService: LocationService
   @Dependency(\.networkConnectionService) var networkConnectionService
   @Dependency(\.openApplicationSettings) var openApplicationSettings
@@ -29,6 +31,7 @@ public struct CitySelectionFeature {
     @Presents var alert: AlertState<Action.Alert>?
     
     public var selectedCityId: Int?
+    private var selectionHistoryCityIds = [Int]()
     
     var isSearchFocused = false
     fileprivate var searchQuery: String = .empty
@@ -49,6 +52,7 @@ public struct CitySelectionFeature {
     // ignored
     public var tableSections = [CityTableSection]()
     fileprivate(set) var cityIds = Set<Int>()
+    fileprivate(set) var visibleHistoryCityIds = [Int]()
     fileprivate var searchEngine = CitySearchEngine()
     private(set) var isInitialized = false
     fileprivate(set) var isWantUserCoordinate = false
@@ -56,7 +60,17 @@ public struct CitySelectionFeature {
     
     var cities: [City] { searchEngine.cities }
     
-    public init() {}
+    public init(
+      selectedCityId: Int? = nil,
+      selectionHistoryCityIds: [Int] = []
+    ) {
+      self.selectedCityId = selectedCityId
+      setSelectionHistoryCityIds(selectionHistoryCityIds)
+    }
+    
+    func city(id: Int) -> City? {
+      searchEngine.cities[safe: id]
+    }
     
     func isNeedSelectCity() -> Bool {
       selectedCityId == nil
@@ -96,11 +110,6 @@ public struct CitySelectionFeature {
     
     // MARK: Nearest city support
     mutating fileprivate func setNearestCity(_ value: City?) {
-      // FIXME: debug log
-      if let value {
-        print("receive nearest city: id: \(value.id), name: \(value.name)")
-      }
-      
       nearestCity = value
       updateNearestCityRequestState()
     }
@@ -121,6 +130,12 @@ public struct CitySelectionFeature {
         value = .error(error)
       }
       nearestCityRequestState = value
+    }
+    
+    // MARK: Selection history support
+    mutating fileprivate func setSelectionHistoryCityIds(_ ids: [Int]) {
+      selectionHistoryCityIds = ids
+      visibleHistoryCityIds = ids.filter { $0 != selectedCityId }
     }
 
     // MARK: Toast support
@@ -176,6 +191,7 @@ public struct CitySelectionFeature {
     /// Equatable
     public static func == (lhs: State, rhs: State) -> Bool {
       lhs.selectedCityId == rhs.selectedCityId
+      && lhs.selectionHistoryCityIds == rhs.selectionHistoryCityIds
       && lhs.isSearchFocused == rhs.isSearchFocused
       && lhs.searchQuery == rhs.searchQuery
       && lhs.searchEngineRequestState == rhs.searchEngineRequestState
@@ -192,6 +208,7 @@ public struct CitySelectionFeature {
     case binding(BindingAction<State>)
     
     case changeLocationServiceAuthorizationStatus(CLAuthorizationStatus)
+    case changeSelectionHistoryCityIds([Int])
     
     case hideQueryWarningToast
     
@@ -257,11 +274,12 @@ public struct CitySelectionFeature {
         case \.selectedCityId:
           if let cityId = state.selectedCityId {
             state.removeToast(.citySelectionRequired)
-            
-            // FIXME: debug log
-            print("select city with id: \(cityId)")
+
+            if let city = state.city(id: cityId) {
+              let interactor = self.interactor
+              Task.onMainActor { interactor.selectCity(city) }
+            }
           }
-          break
           
         default:
           break
@@ -273,6 +291,9 @@ public struct CitySelectionFeature {
         } else {
           state.isWantUserCoordinate = false
         }
+        
+      case let .changeSelectionHistoryCityIds(ids):
+        state.setSelectionHistoryCityIds(ids)
         
       case .hideQueryWarningToast:
         state.queryInvalidSymbols = .empty
@@ -295,7 +316,8 @@ public struct CitySelectionFeature {
         if isStateUninitialized {
           effects += [
             locationServiceAuthorizationStatusStreamEffect(),
-            networkAvailabilityStreamEffect()
+            networkAvailabilityStreamEffect(),
+            selectionHistoryCityIdsStreamEffect()
           ]
         }
         if state.isNeedRequestSearchEngine() {
@@ -522,6 +544,15 @@ public struct CitySelectionFeature {
       }
       
       await send(.responseUserCoordinate(response))
+    }
+  }
+  
+  private func selectionHistoryCityIdsStreamEffect() -> Effect<Action> {
+    let cityIdsStream = interactor.historyCityIdsStream
+    return .run { send in
+      for await cityIds in cityIdsStream() {
+        await send(.changeSelectionHistoryCityIds(cityIds))
+      }
     }
   }
 }
