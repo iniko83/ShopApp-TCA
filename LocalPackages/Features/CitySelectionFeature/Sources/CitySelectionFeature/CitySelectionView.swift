@@ -12,6 +12,8 @@ import SwiftUI
 import NetworkClient
 import Utility
 
+// FIXME: Bring views inits to "assembly" style, remove unused Bindings.
+
 public struct CitySelectionView: View {
   @Bindable public var store: StoreOf<CitySelectionFeature>
   
@@ -162,13 +164,15 @@ public struct CitySelectionView: View {
       if isSelectionHistoryVisible {
         ZStack(alignment: .top) {
           Color.white
+            .opacity(0.4)
             .frame(height: selectionHistoryHeight)
             .animation(.smooth, value: selectionHistoryHeight)
+            .background(.ultraThinMaterial)
             .verticalGradientMaskWithPaddings(
               top: 0.5 * padding,
               bottom: padding
             )
-          
+
           CitySelectionHistoryView(
             selectedCityId: $store.selectedCityId,
             cities: store.state.visibleSelectionHistoryCities,

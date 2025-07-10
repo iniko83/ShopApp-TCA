@@ -35,8 +35,11 @@ struct CitySelectionHistoryRowView: View {
   var body: some View {
     let id = city.id
     let isSelected = selectedCityId == id
-    
-    return ZStack {
+
+    let contentInsets = EdgeInsets.cityCell.with(trailing: 0)
+    let buttonInsets = EdgeInsets.cityCell.with(vertical: 0)
+
+    ZStack {
       Button(
         action: { selectedCityId = id },
         label: { Color.clear }
@@ -50,7 +53,8 @@ struct CitySelectionHistoryRowView: View {
           userCoordinate: userCoordinate
         )
         .animation(animation, value: selectedCityId)
-        
+        .padding(contentInsets)
+
         Button(
           action: onRemove,
           label: {
@@ -60,11 +64,12 @@ struct CitySelectionHistoryRowView: View {
               .frame(square: 24)
               .symbolRenderingMode(.palette)
               .foregroundStyle(Color.white, Color.citySelection)
+              .frame(maxHeight: .infinity)
+              .padding(buttonInsets)
           }
         )
       }
       .geometryGroup()
-      .padding(.cityCell)
     }
   }
 }

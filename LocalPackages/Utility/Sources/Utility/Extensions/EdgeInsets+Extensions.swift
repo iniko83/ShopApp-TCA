@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-extension EdgeInsets {
-  public init(horizontal: CGFloat, vertical: CGFloat) {
+public extension EdgeInsets {
+  init(horizontal: CGFloat, vertical: CGFloat) {
     self.init(
       top: vertical,
       leading: horizontal,
@@ -17,21 +17,34 @@ extension EdgeInsets {
     )
   }
   
-  public init(top: CGFloat, bottom: CGFloat) {
-    self.init(
-      top: top,
-      leading: .zero,
-      bottom: bottom,
-      trailing: .zero
-    )
+  init(top: CGFloat, bottom: CGFloat) {
+    self.init(top: top, leading: 0, bottom: bottom, trailing: 0)
   }
   
-  public init(value: CGFloat) {
+  init(value: CGFloat) {
     self.init(
       top: value,
       leading: value,
       bottom: value,
       trailing: value
     )
+  }
+}
+
+public extension EdgeInsets {
+  func with(leading: CGFloat) -> Self {
+    .init(top: top, leading: leading, bottom: bottom, trailing: trailing)
+  }
+
+  func with(trailing: CGFloat) -> Self {
+    .init(top: top, leading: leading, bottom: bottom, trailing: trailing)
+  }
+
+  func with(top: CGFloat, bottom: CGFloat) -> Self {
+    .init(top: top, leading: leading, bottom: bottom, trailing: trailing)
+  }
+
+  func with(vertical: CGFloat) -> Self {
+    with(top: vertical, bottom: vertical)
   }
 }

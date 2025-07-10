@@ -12,8 +12,6 @@ import NetworkClient
 import NetworkConnectionService
 import Utility
 
-// FIXME: add city selection history
-
 @Reducer
 public struct CitySelectionFeature {
   @Dependency(\.mainQueue) var mainQueue
