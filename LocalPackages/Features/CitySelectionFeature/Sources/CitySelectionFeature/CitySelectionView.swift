@@ -12,8 +12,6 @@ import SwiftUI
 import NetworkClient
 import Utility
 
-// FIXME: add empty state view
-
 public struct CitySelectionView: View {
   @Bindable public var store: StoreOf<CitySelectionFeature>
   
@@ -41,7 +39,9 @@ public struct CitySelectionView: View {
           EdgeEffectView()
           SelectionHistoryPanelView()
           SearchPanelView()
-          BottomPanelView()
+
+          BottomToastPanelView()
+          BottomNearestCityView()
         }
         .coordinateSpace(name: CoordinateSpaces.content)
         
@@ -86,15 +86,8 @@ public struct CitySelectionView: View {
     .ignoresSafeArea(.keyboard)
   }
 
-  @ViewBuilder private func BottomPanelView() -> some View {
-    ZStack {
-      BottomToastPanelView()
-      BottomNearestCityView()
-    }
-  }
-
   @ViewBuilder private func BottomToastPanelView() -> some View {
-    let offset = isKeyboardShown ? 0 : -bottomPanelFrames.content.height
+    let offset = isKeyboardShown ? 0 : bottomPanelFrames.content.height
     
     VStack(spacing: 0) {
       Spacer()
@@ -104,9 +97,9 @@ public struct CitySelectionView: View {
         onAction: { store.send(.toastAction($0)) }
       )
       .padding(.bottom)
+      .padding(.bottom, offset)
+      .animation(.spring(.keyboard), value: offset)
     }
-    .offset(y: offset)
-    .animation(.keyboard, value: offset)
   }
   
   @ViewBuilder private func CitiesEmptyView() -> some View {
@@ -130,6 +123,11 @@ public struct CitySelectionView: View {
       }
     }
     .animation(.smooth, value: isFoundNothing)
+    .onGeometryChange(
+      for: Bool.self,
+      of: { $0.safeAreaInsets.bottom > 100 },
+      action: { isKeyboardShown = $0 }
+    )
   }
 
   @ViewBuilder private func CitiesView() -> some View {
@@ -145,11 +143,6 @@ public struct CitySelectionView: View {
     .padding(.top, topPadding)
     .animation(.smooth, value: topPadding)
     .scrollClipDisabled()
-    .onGeometryChange(
-      for: Bool.self,
-      of: { $0.safeAreaInsets.bottom > 100 },
-      action: { isKeyboardShown = $0 }
-    )
   }
   
   @ViewBuilder private func EdgeEffectView() -> some View {
