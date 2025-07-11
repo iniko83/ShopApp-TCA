@@ -119,14 +119,15 @@ public struct CitySearchEngine: Sendable {
   }
   
   private static func makeDefaultResponse(cities: [City]) -> CitySearchResponse {
-    let ids = cities
+    let ids = cities.map { $0.id }
+    let bigCityIds = cities
       .prefix(while: { $0.size == .big })
       .sorted(by: { $0.name < $1.name })
       .map { $0.id }
     
     let searchResult = CitySearchResult(
       ids: Set(ids),
-      sections: [.init(kind: .bigCities, ids: ids)]
+      sections: [.init(kind: .bigCities, ids: bigCityIds)]
     )
     return searchResult.makeResponse(query: .empty)
   }
