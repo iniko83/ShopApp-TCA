@@ -13,7 +13,7 @@ import RestClient
 import Utility
 
 public struct CitySelectionApi: Sendable {
-  public var loadCities: @Sendable () async -> RequestResult<[City]>
+  public let loadCities: @Sendable () async -> RequestResult<[City]>
 }
 
 extension CitySelectionApi: DependencyKey {

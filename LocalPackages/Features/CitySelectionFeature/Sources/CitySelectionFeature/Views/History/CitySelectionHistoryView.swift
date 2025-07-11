@@ -10,16 +10,14 @@ import Utility
 
 struct CitySelectionHistoryView: View {
   @Binding var selectedCityId: Int?
-  
-  private let cities: [City]
-  private let userCoordinate: Coordinate?
-  
-  private let onRemoveCityId: (Int) -> Void
+  let cities: [City]
+  let userCoordinate: Coordinate?
+  let onRemoveCityId: (Int) -> Void
   
   init(
     selectedCityId: Binding<Int?>,
     cities: [City],
-    userCoordinate: Coordinate?,
+    userCoordinate: Coordinate? = nil,
     onRemoveCityId: @escaping (Int) -> Void
   ) {
     _selectedCityId = selectedCityId
@@ -32,17 +30,7 @@ struct CitySelectionHistoryView: View {
     LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
       Section(
         content: {
-          ForEach(cities, id: \.id) { city in
-            let id = city.id
-            
-            CitySelectionHistoryRowView(
-              selectedCityId: $selectedCityId,
-              city: city,
-              userCoordinate: userCoordinate,
-              onRemove: { onRemoveCityId(id) }
-            )
-            .animation(.rowSelection, value: selectedCityId)
-          }
+          ForEach(cities, id: \.id) { RowView(city: $0) }
         },
         header: { HeaderView() }
       )
@@ -57,21 +45,25 @@ struct CitySelectionHistoryView: View {
       gradientColor: .mainBackground
     )
   }
+
+  @ViewBuilder private func RowView(city: City) -> some View {
+    let id = city.id
+
+    CitySelectionHistoryRowView(
+      selectedCityId: $selectedCityId,
+      city: city,
+      userCoordinate: userCoordinate,
+      onRemove: { onRemoveCityId(id) }
+    )
+    .animation(.rowSelection, value: selectedCityId)
+  }
 }
 
 #Preview {
-  let initialCities: [City] = [
-    .moscow,
-    .saintPetersburg,
-    .blagoveshchensk
-  ]
-  
   struct ContentView: View {
     @State private var isDarkTheme = false
-    
     @State private var selectedCityId: Int?
     @State private var cities: [City]
-    
     private let initialCities: [City]
     
     init(initialCities: [City]) {
@@ -97,7 +89,6 @@ struct CitySelectionHistoryView: View {
         CitySelectionHistoryView(
           selectedCityId: $selectedCityId,
           cities: cities,
-          userCoordinate: nil,
           onRemoveCityId: removeCity
         )
         .border(Color.blue.opacity(0.1))
@@ -117,6 +108,11 @@ struct CitySelectionHistoryView: View {
       cities = initialCities
     }
   }
-  
+
+  let initialCities: [City] = [
+    .moscow,
+    .saintPetersburg,
+    .blagoveshchensk
+  ]
   return ContentView(initialCities: initialCities)
 }

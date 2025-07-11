@@ -5,10 +5,10 @@ import CoreLocation
 import Dependencies
 
 public struct LocationService: Sendable {
-  public var authorizationStatus: @Sendable () -> CLAuthorizationStatus
-  public var authorizationStatusStream: @Sendable () -> AsyncStream<CLAuthorizationStatus>
-  public var coordinateStream: @Sendable () -> AsyncStream<CLLocationCoordinate2D>
-  public var requestLocation: @Sendable () async -> Result<CLLocation, LocationServiceError>
+  public let authorizationStatus: @MainActor @Sendable () -> CLAuthorizationStatus
+  public let authorizationStatusStream: @Sendable () -> AsyncStream<CLAuthorizationStatus>
+  public let coordinateStream: @Sendable () -> AsyncStream<CLLocationCoordinate2D>
+  public let requestLocation: @Sendable () async -> Result<CLLocation, LocationServiceError>
 }
 
 extension LocationService: DependencyKey {

@@ -7,10 +7,10 @@ import Foundation
 import Utility
 
 public struct CityManager: Sendable {
-  public var city: @MainActor @Sendable () -> City?
-  public var cityStream: @Sendable () -> AsyncStream<City>
-  
-  public var changeCity: @MainActor @Sendable (City) -> Void
+  public let city: @MainActor @Sendable () -> City?
+  public let cityStream: @Sendable () -> AsyncStream<City>
+
+  public let changeCity: @MainActor @Sendable (City) -> Void
 }
 
 extension CityManager: DependencyKey {

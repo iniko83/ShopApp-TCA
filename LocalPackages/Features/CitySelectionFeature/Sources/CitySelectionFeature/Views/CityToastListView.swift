@@ -14,18 +14,8 @@ public enum CityToastAction {
 
 struct CityToastListView: View {
   @State private var contentHeight: CGFloat = 1
-  
-  private let items: [CityToastItem]
-  
-  private let onAction: (CityToastAction) -> Void
-  
-  init(
-    items: [CityToastItem],
-    onAction: @escaping (CityToastAction) -> Void
-  ) {
-    self.items = items
-    self.onAction = onAction
-  }
+  let items: [CityToastItem]
+  let onAction: (CityToastAction) -> Void
   
   var body: some View {
     let maximumHeight: CGFloat = 150

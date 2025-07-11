@@ -10,10 +10,9 @@ import SwiftUI
 // Based on: [ https://www.reddit.com/r/iOSProgramming/comments/1ejoppj/cool_swiftui_gradient_that_users_love/ ]
 
 struct CitySectionHeaderView: View {
-  private let text: String
-
-  private let isLeading: Bool
-  private let gradientColor: Color
+  let text: String
+  let isLeading: Bool
+  let gradientColor: Color
   
   init(
     text: String,
@@ -67,8 +66,8 @@ struct CitySectionHeaderView: View {
 }
 
 struct GradientBackgroundView: View {
-  private let color: Color
-  private let anchor: UnitPoint
+  let color: Color
+  let anchor: UnitPoint
   
   init(
     color: Color = .mainAccent,

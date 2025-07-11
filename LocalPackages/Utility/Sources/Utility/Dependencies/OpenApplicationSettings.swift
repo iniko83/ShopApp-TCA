@@ -19,7 +19,7 @@ extension DependencyValues {
   private enum OpenApplicationSettingsKey: DependencyKey {
     typealias Value = @Sendable () async -> Void
     
-    static let liveValue: @Sendable () async -> Void = {
+    static let liveValue: Value = {
       await MainActor.run {
         let url = URL(string: UIApplication.openSettingsURLString)!
         UIApplication.shared.open(url)

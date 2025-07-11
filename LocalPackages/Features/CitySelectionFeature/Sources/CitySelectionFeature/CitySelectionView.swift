@@ -12,7 +12,7 @@ import SwiftUI
 import NetworkClient
 import Utility
 
-// FIXME: Bring views inits to "assembly" style, remove unused Bindings.
+// FIXME: add empty state view
 
 public struct CitySelectionView: View {
   @Bindable public var store: StoreOf<CitySelectionFeature>
@@ -39,7 +39,7 @@ public struct CitySelectionView: View {
         ZStack(alignment: .top) {
           CitiesView()
           EdgeEffectView()
-          HistorySelectionPanelView()
+          SelectionHistoryPanelView()
           SearchPanelView()
           BottomPanelView()
         }
@@ -61,21 +61,14 @@ public struct CitySelectionView: View {
     }
   }
   
-  @ViewBuilder private func BottomPanelView() -> some View {
-    ZStack {
-      BottomToastPanelView()
-      BottomNearestCityView()
-    }
-  }
-  
   @ViewBuilder private func BottomNearestCityView() -> some View {
     VStack(spacing: 0) {
       Spacer()
       
       NearestCityPanelView(
         selectedCityId: $store.selectedCityId,
-        nearestCity: store.state.nearestCity,
-        nearestCityRequestState: store.state.nearestCityRequestState,
+        city: store.state.nearestCity,
+        isProcessing: store.state.nearestCityRequestState.isProcessing,
         userCoordinate: store.state.userCoordinate,
         onTapDefineUserLocation: { store.send(.tapDefineUserLocation) }
       )
@@ -92,7 +85,14 @@ public struct CitySelectionView: View {
     }
     .ignoresSafeArea(.keyboard)
   }
-  
+
+  @ViewBuilder private func BottomPanelView() -> some View {
+    ZStack {
+      BottomToastPanelView()
+      BottomNearestCityView()
+    }
+  }
+
   @ViewBuilder private func BottomToastPanelView() -> some View {
     let offset = isKeyboardShown ? 0 : -bottomPanelFrames.content.height
     
@@ -101,7 +101,7 @@ public struct CitySelectionView: View {
       
       CityToastListView(
         items: store.toastItems,
-        onAction: { action in store.send(.toastAction(action)) }
+        onAction: { store.send(.toastAction($0)) }
       )
       .padding(.bottom)
     }
@@ -114,7 +114,7 @@ public struct CitySelectionView: View {
     
     CityListView(
       selectedCityId: $store.selectedCityId,
-      sections: $store.tableSections,
+      sections: store.state.tableSections,
       cities: store.state.cities,
       userCoordinate: store.state.userCoordinate,
       insets: scrollInsets()
@@ -151,53 +151,7 @@ public struct CitySelectionView: View {
     )
     .padding()
   }
-  
-  @ViewBuilder private func HistorySelectionPanelView() -> some View {
-    let height = searchFieldFrames.content.height
-    let isSelectionHistoryVisible = store.state.isSelectionHistoryVisible
-    let padding: CGFloat = 12
 
-    VStack(spacing: 0) {
-      Spacer()
-        .frame(height: height)
-      
-      if isSelectionHistoryVisible {
-        ZStack(alignment: .top) {
-          Color.white
-            .opacity(0.4)
-            .frame(height: selectionHistoryHeight)
-            .animation(.smooth, value: selectionHistoryHeight)
-            .background(.ultraThinMaterial)
-            .verticalGradientMaskWithPaddings(
-              top: 0.5 * padding,
-              bottom: padding
-            )
-
-          CitySelectionHistoryView(
-            selectedCityId: $store.selectedCityId,
-            cities: store.state.visibleSelectionHistoryCities,
-            userCoordinate: store.state.userCoordinate,
-            onRemoveCityId: { store.send(.removeCityIdFromSelectionHistory($0)) }
-          )
-          .padding(.bottom, padding)
-          .geometryGroup()
-          .onGeometryChange(
-            for: CGFloat.self,
-            of: { $0.size.height },
-            action: { selectionHistoryHeight = $0 }
-          )
-        }
-        .transition(.opacity.combined(with: .move(edge: .top)))
-      }
-      
-      Spacer()
-    }
-    .frame(maxWidth: .infinity)
-    .animation(.smooth, value: isSelectionHistoryVisible)
-    .verticalGradientMaskWithPaddings(top: height)
-    .animation(.smooth, value: height)
-  }
-  
   @ViewBuilder private func LoadingCitiesView() -> some View {
     ActivityView(style: .ballRotateChase)
       .activitySize(.screen)
@@ -298,7 +252,53 @@ public struct CitySelectionView: View {
     }
     .animation(.smooth, value: isShowQueryToast)
   }
-  
+
+  @ViewBuilder private func SelectionHistoryPanelView() -> some View {
+    let height = searchFieldFrames.content.height
+    let isSelectionHistoryVisible = store.state.isSelectionHistoryVisible
+    let padding: CGFloat = 12
+
+    VStack(spacing: 0) {
+      Spacer()
+        .frame(height: height)
+
+      if isSelectionHistoryVisible {
+        ZStack(alignment: .top) {
+          Color.white
+            .opacity(0.4)
+            .frame(height: selectionHistoryHeight)
+            .animation(.smooth, value: selectionHistoryHeight)
+            .background(.ultraThinMaterial)
+            .verticalGradientMaskWithPaddings(
+              top: 0.5 * padding,
+              bottom: padding
+            )
+
+          CitySelectionHistoryView(
+            selectedCityId: $store.selectedCityId,
+            cities: store.state.visibleSelectionHistoryCities,
+            userCoordinate: store.state.userCoordinate,
+            onRemoveCityId: { store.send(.removeCityIdFromSelectionHistory($0)) }
+          )
+          .padding(.bottom, padding)
+          .geometryGroup()
+          .onGeometryChange(
+            for: CGFloat.self,
+            of: { $0.size.height },
+            action: { selectionHistoryHeight = $0 }
+          )
+        }
+        .transition(.opacity.combined(with: .move(edge: .top)))
+      }
+
+      Spacer()
+    }
+    .frame(maxWidth: .infinity)
+    .animation(.smooth, value: isSelectionHistoryVisible)
+    .verticalGradientMaskWithPaddings(top: height)
+    .animation(.smooth, value: height)
+  }
+
   private func edgeEffectScrollConfiguration() -> EdgeEffect.ScrollConfiguration {
     let contentPadding: CGFloat = 10
     let defaultBottomThreshold: CGFloat = 0.3

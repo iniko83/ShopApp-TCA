@@ -10,24 +10,23 @@ import Utility
 
 struct CityListView: View {
   @Binding var selectedCityId: Int?
-  @Binding var sections: [CityTableSection]
-  
   @State private var scrollPositionCityId: Int?
-  
-  private let cities: [City]
-  private let userCoordinate: Coordinate?
-  
-  private let insets: EdgeInsets
-  
+
+  let sections: [CityTableSection]
+  let cities: [City]
+  let userCoordinate: Coordinate?
+
+  let insets: EdgeInsets
+
   init(
     selectedCityId: Binding<Int?>,
-    sections: Binding<[CityTableSection]>,
+    sections: [CityTableSection],
     cities: [City],
     userCoordinate: Coordinate?,
     insets: EdgeInsets
   ) {
     _selectedCityId = selectedCityId
-    _sections = sections
+    self.sections = sections
     self.cities = cities
     self.userCoordinate = userCoordinate
     self.insets = insets
@@ -37,18 +36,10 @@ struct CityListView: View {
     ScrollView {
       LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
         ForEach(sections, id: \.id) { section in
+          let cities = section.ids.compactMap { id in self.cities[safe: id] }
           Section(
             content: {
-              ForEach(section.ids, id: \.self) { id in
-                if let city = cities[safe: id] {
-                  CityRowView(
-                    selectedCityId: $selectedCityId,
-                    city: city,
-                    userCoordinate: userCoordinate
-                  )
-                  .animation(.rowSelection, value: selectedCityId)
-                }
-              }
+              ForEach(cities, id: \.id) { RowView(city: $0) }
             },
             header: { CitySectionHeaderView(kind: section.kind) }
           )
@@ -66,5 +57,14 @@ struct CityListView: View {
       guard let id = newValue.first?.ids.first else { return }
       scrollPositionCityId = id
     }
+  }
+
+  @ViewBuilder private func RowView(city: City) -> some View {
+    CityRowView(
+      selectedCityId: $selectedCityId,
+      city: city,
+      userCoordinate: userCoordinate
+    )
+    .animation(.rowSelection, value: selectedCityId)
   }
 }

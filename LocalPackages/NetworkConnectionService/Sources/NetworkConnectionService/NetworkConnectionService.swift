@@ -5,7 +5,7 @@ import Dependencies
 import Network
 
 public struct NetworkConnectionService: Sendable {
-  public var connectionStream: @Sendable (_ types: Set<NetworkType>) -> AsyncStream<Bool>
+  public let connectionStream: @Sendable (_ types: Set<NetworkType>) -> AsyncStream<Bool>
 }
 
 extension NetworkConnectionService {

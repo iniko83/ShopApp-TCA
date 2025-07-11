@@ -10,33 +10,16 @@ import Utility
 
 struct NearestCityPanelView: View {
   @Binding var selectedCityId: Int?
-  
-  private let nearestCity: City?
-  private let nearestCityRequestState: RequestLocationState
-  
-  private let userCoordinate: Coordinate?
-  
-  private let onTapDefineUserLocation: () -> Void
-  
-  init(
-    selectedCityId: Binding<Int?>,
-    nearestCity: City?,
-    nearestCityRequestState: RequestLocationState,
-    userCoordinate: Coordinate?,
-    onTapDefineUserLocation: @escaping () -> Void
-  ) {
-    _selectedCityId = selectedCityId
-    self.nearestCity = nearestCity
-    self.nearestCityRequestState = nearestCityRequestState
-    self.userCoordinate = userCoordinate
-    self.onTapDefineUserLocation = onTapDefineUserLocation
-  }
+  let city: City?
+  let isProcessing: Bool
+  let userCoordinate: Coordinate?
+  let onTapDefineUserLocation: () -> Void
   
   var body: some View {
-    let isNearestCityHidden = nearestCity == nil
+    let isCityHidden = city == nil
     ZStack {
-      if let nearestCity {
-        NearestCityView(city: nearestCity)
+      if let city {
+        NearestCityView(city)
           .background(
             Color.white
               .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
@@ -44,10 +27,10 @@ struct NearestCityPanelView: View {
               .mask(Rectangle().padding(.top, -36))
               .ignoresSafeArea(.all, edges: .bottom)
           )
-          .transition(.move(edge: .bottom))
+          .transition(.opacity.combined(with: .move(edge: .bottom)))
       } else {
         DefineNearestCityButton(
-          isProcessing: nearestCityRequestState.isProcessing,
+          isProcessing: isProcessing,
           action: onTapDefineUserLocation
         )
         .padding([.horizontal, .bottom])
@@ -60,22 +43,17 @@ struct NearestCityPanelView: View {
         )
       }
     }
-    .animation(.snappy, value: isNearestCityHidden)
+    .animation(.snappy, value: isCityHidden)
     .frame(maxWidth: .infinity, alignment: .bottom)
   }
   
-  @ViewBuilder private func NearestCityView(city: City) -> some View {
+  @ViewBuilder private func NearestCityView(_ city: City) -> some View {
     let id = city.id
     let isSelected = selectedCityId == id
-    let isProcessing = nearestCityRequestState.isProcessing
-    
+
     ZStack {
-      Button(
-        action: { selectedCityId = id },
-        label: { Color.clear }
-      )
-      .buttonStyle(.highlightingCell)
-      
+      CellHighlightingButton(action: { selectedCityId = id })
+
       HStack {
         VStack(spacing: 0) {
           Text("Ближайший город:")
@@ -92,12 +70,41 @@ struct NearestCityPanelView: View {
         
         RefreshButton(
           isProcessing: isProcessing,
-          action: { onTapDefineUserLocation() }
+          action: onTapDefineUserLocation
         )
         .frame(square: 36)
       }
       .padding(.cityCell)
     }
     .fixedSize(horizontal: false, vertical: true)
+  }
+}
+
+
+#Preview {
+  @Previewable @State var isDefaultCity = false
+  @Previewable @State var isProcessing = false
+  @Previewable @State var selectedCityId: Int?
+
+  VStack(spacing: 0) {
+    Spacer()
+
+    VStack {
+      Toggle("isDefaultCity", isOn: $isDefaultCity)
+      Toggle("isProcessing", isOn: $isProcessing)
+    }
+    .padding()
+
+    let city: City? = isDefaultCity ? .moscow : nil
+
+    Spacer()
+
+    NearestCityPanelView(
+      selectedCityId: $selectedCityId,
+      city: city,
+      isProcessing: isProcessing,
+      userCoordinate: nil,
+      onTapDefineUserLocation: { isDefaultCity = true }
+    )
   }
 }

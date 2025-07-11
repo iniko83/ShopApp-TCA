@@ -10,12 +10,10 @@ import Utility
 
 struct CityRowView: View {
   @Binding var selectedCityId: Int?
-  
-  private let city: City
-  private let userCoordinate: Coordinate?
-  
-  private let animation: Animation
-  
+  let city: City
+  let userCoordinate: Coordinate?
+  let animation: Animation
+
   init(
     selectedCityId: Binding<Int?>,
     city: City,
@@ -33,12 +31,8 @@ struct CityRowView: View {
     let isSelected = selectedCityId == id
     
     return ZStack {
-      Button(
-        action: { selectedCityId = id },
-        label: { Color.clear }
-      )
-      .buttonStyle(.highlightingCell)
-      
+      CellHighlightingButton(action: { selectedCityId = id })
+
       CityContentView(
         city: city,
         isSelected: isSelected,
@@ -52,24 +46,12 @@ struct CityRowView: View {
 
 
 #Preview {
-  let cities: [City] = [
-    .moscow,
-    .saintPetersburg,
-    .blagoveshchensk
-  ]
-
   struct ContentView: View {
     @State private var isDarkTheme = false
-    
     @State private var selectedCityId: Int?
     @State private var userLocationCityId: Int?
-    
-    private let cities: [City]
-    
-    init(cities: [City]) {
-      self.cities = cities
-    }
-    
+    let cities: [City]
+
     var body: some View {
       let userLocationCity = userLocationCity()
       
@@ -93,7 +75,7 @@ struct CityRowView: View {
                 Text(city.name).tag(city.id)
               }
             },
-            label: { }
+            label: {}
           )
           .pickerStyle(.segmented)
         }
@@ -118,6 +100,11 @@ struct CityRowView: View {
       return cities.first(where: { $0.id == id })
     }
   }
-  
+
+  let cities: [City] = [
+    .moscow,
+    .saintPetersburg,
+    .blagoveshchensk
+  ]
   return ContentView(cities: cities)
 }

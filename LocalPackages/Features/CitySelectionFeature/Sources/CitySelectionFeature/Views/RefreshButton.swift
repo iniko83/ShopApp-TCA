@@ -9,10 +9,9 @@ import SwiftUI
 import Utility
 
 struct RefreshButton: View {
-  private let isProcessing: Bool
-  private let paddingPart: CGFloat
-
-  private let action: () -> Void
+  let isProcessing: Bool
+  let paddingPart: CGFloat
+  let action: () -> Void
   
   init(
     isProcessing: Bool,

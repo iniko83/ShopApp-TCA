@@ -10,7 +10,6 @@ import Utility
 
 struct CityQueryToastView: View {
   let invalidSymbols: String
-  
   let onClose: () -> Void
   
   var body: some View {

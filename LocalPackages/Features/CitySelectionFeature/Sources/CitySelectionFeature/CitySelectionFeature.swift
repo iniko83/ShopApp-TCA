@@ -6,7 +6,6 @@ import CoreLocation
 import Dependencies
 import SwiftUI
 
-import CityManager
 import LocationService
 import NetworkClient
 import NetworkConnectionService
@@ -325,18 +324,17 @@ public struct CitySelectionFeature {
         if isStateUninitialized {
           var selectedCityId: Int?
           var selectionHistoryCityIds = [Int]()
-          
-          let interactor = self.interactor
-          try? MainActor.assumeIsolated {
+          try? MainActor.assumeIsolated { [interactor = self.interactor] in
             selectedCityId = interactor.selectedCityId()
             selectionHistoryCityIds = interactor.historyCityIds()
           }
-          
-          let status = locationService.authorizationStatus()
+
+          let isLocationServiceAuthorized = locationServiceAuthorizationStatus().isAuthorized
+
           state.initialize(
             selectedCityId: selectedCityId,
             selectionHistoryCityIds: selectionHistoryCityIds,
-            isLocationServiceAuthorized: status.isAuthorized
+            isLocationServiceAuthorized: isLocationServiceAuthorized
           )
         }
         
@@ -421,7 +419,7 @@ public struct CitySelectionFeature {
       case .tapDefineUserLocation:
         state.isWantUserCoordinate = true
         
-        let isLocationServiceDenied = locationService.authorizationStatus().isDenied
+        let isLocationServiceDenied = locationServiceAuthorizationStatus().isDenied
         if isLocationServiceDenied {
           state.alert = .openApplicationSettings
         } else if state.isNeedRequestUserCoordinate() {
@@ -447,7 +445,17 @@ public struct CitySelectionFeature {
     }
     .ifLet(\.$alert, action: \.alert)
   }
-  
+
+  private func locationServiceAuthorizationStatus() -> CLAuthorizationStatus {
+    // NOTE: during TCA migration to Swift6 we need to explicitly tell the compiler that this code will be executed on MainActor
+    var result = CLAuthorizationStatus.notDetermined
+    let authorizationStatus = locationService.authorizationStatus
+    try? MainActor.assumeIsolated {
+      result = authorizationStatus()
+    }
+    return result
+  }
+
   private func fetchNearestCityEffect(
     state: inout State,
     isWantUpdate: Bool = false

@@ -5,18 +5,18 @@
 //  Created by Igor Nikolaev on 07.07.2025.
 //
 
-// NOTE: Similar to CityManager
+// Similar to CityManager
 
 import Dependencies
 import Foundation
 
 struct CitySelectionHistoryManager: Sendable {
-  var ids: @MainActor @Sendable () -> [Int]
-  var idsStream: @Sendable () -> AsyncStream<[Int]>
-  
-  var insertId: @MainActor @Sendable (Int) -> Void
-  var removeId: @MainActor @Sendable (Int) -> Void
-  var reset: @MainActor @Sendable () -> Void
+  let ids: @MainActor @Sendable () -> [Int]
+  let idsStream: @Sendable () -> AsyncStream<[Int]>
+
+  let insertId: @MainActor @Sendable (Int) -> Void
+  let removeId: @MainActor @Sendable (Int) -> Void
+  let reset: @MainActor @Sendable () -> Void
 }
 
 extension CitySelectionHistoryManager: DependencyKey {

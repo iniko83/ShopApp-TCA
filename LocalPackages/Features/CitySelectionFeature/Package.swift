@@ -13,6 +13,7 @@ let package = Package(
     ),
   ],
   dependencies: [
+    .package(path: "../../CityManager"),
     .package(path: "../../LocationService"),
     .package(path: "../../NetworkClient"),
     .package(path: "../../NetworkConnectionService"),
@@ -24,6 +25,7 @@ let package = Package(
     .target(
       name: "CitySelectionFeature",
       dependencies: [
+        .product(name: "CityManager", package: "CityManager"),
         .product(name: "LocationService", package: "LocationService"),
         .product(name: "NetworkClient", package: "NetworkClient"),
         .product(name: "NetworkConnectionService", package: "NetworkConnectionService"),

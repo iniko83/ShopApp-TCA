@@ -10,18 +10,15 @@ import Utility
 
 struct CitySelectionHistoryRowView: View {
   @Binding var selectedCityId: Int?
-  
-  private let city: City
-  private let userCoordinate: Coordinate?
-  
-  private let animation: Animation
-  
-  private let onRemove: () -> Void
+  let city: City
+  let userCoordinate: Coordinate?
+  let animation: Animation
+  let onRemove: () -> Void
   
   init(
     selectedCityId: Binding<Int?>,
     city: City,
-    userCoordinate: Coordinate?,
+    userCoordinate: Coordinate? = nil,
     animation: Animation = .rowSelection,
     onRemove: @escaping () -> Void
   ) {
@@ -35,17 +32,11 @@ struct CitySelectionHistoryRowView: View {
   var body: some View {
     let id = city.id
     let isSelected = selectedCityId == id
-
-    let contentInsets = EdgeInsets.cityCell.with(trailing: 0)
-    let buttonInsets = EdgeInsets.cityCell.with(vertical: 0)
+    let padding = EdgeInsets.cityCell.with(trailing: 0)
 
     ZStack {
-      Button(
-        action: { selectedCityId = id },
-        label: { Color.clear }
-      )
-      .buttonStyle(.highlightingCell)
-      
+      CellHighlightingButton(action: { selectedCityId = id })
+
       HStack {
         CityContentView(
           city: city,
@@ -53,38 +44,42 @@ struct CitySelectionHistoryRowView: View {
           userCoordinate: userCoordinate
         )
         .animation(animation, value: selectedCityId)
-        .padding(contentInsets)
+        .padding(padding)
 
-        Button(
-          action: onRemove,
-          label: {
-            Image(systemName: "minus.circle.fill")
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(square: 24)
-              .symbolRenderingMode(.palette)
-              .foregroundStyle(Color.white, Color.citySelection)
-              .frame(maxHeight: .infinity)
-              .padding(buttonInsets)
-          }
-        )
+        RemoveButton()
       }
       .geometryGroup()
     }
+  }
+
+  @ViewBuilder private func RemoveButton() -> some View {
+    let padding = EdgeInsets.cityCell.with(vertical: 0)
+
+    Button(
+      action: onRemove,
+      label: {
+        Image(systemName: "minus.circle.fill")
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+          .frame(square: 24)
+          .symbolRenderingMode(.palette)
+          .foregroundStyle(Color.white, Color.citySelection)
+          .frame(maxHeight: .infinity)
+          .padding(padding)
+      }
+    )
   }
 }
 
 
 #Preview {
   @Previewable @State var selectedCityId: Int?
-  
   let city = City.moscow
   
   LazyVStack {
     CitySelectionHistoryRowView(
       selectedCityId: $selectedCityId,
       city: city,
-      userCoordinate: nil,
       onRemove: {}
     )
     .border(Color.blue.opacity(0.1))

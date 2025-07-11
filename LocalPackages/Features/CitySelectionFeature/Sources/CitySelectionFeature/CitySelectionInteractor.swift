@@ -22,7 +22,7 @@
   
  In point-freeco Dependencies similar functionality would seen like this:
     struct FeatureUseCases: Sendable {
-      var selectedCityId: @Sendable () -> Int?
+      let selectedCityId: @Sendable () -> Int?
     }
  
  Also they usually use asyncStreams instead publisher, making stream for each subscriber.
@@ -37,14 +37,14 @@ import Utility
 
 public struct CitySelectionInteractor: Sendable {
   // inputs
-  public var selectedCityId: @MainActor @Sendable () -> Int?
-  
-  public var historyCityIds: @MainActor @Sendable () -> [Int]
-  public var historyCityIdsStream: @Sendable () -> AsyncStream<[Int]>
-  
+  public let selectedCityId: @MainActor @Sendable () -> Int?
+
+  public let historyCityIds: @MainActor @Sendable () -> [Int]
+  public let historyCityIdsStream: @Sendable () -> AsyncStream<[Int]>
+
   // outputs
-  public var removeCityIdFromSelectionHistory: @MainActor @Sendable (Int) -> Void
-  public var selectCity: @MainActor @Sendable (City) -> Void
+  public let removeCityIdFromSelectionHistory: @MainActor @Sendable (Int) -> Void
+  public let selectCity: @MainActor @Sendable (City) -> Void
 }
 
 extension CitySelectionInteractor: DependencyKey {

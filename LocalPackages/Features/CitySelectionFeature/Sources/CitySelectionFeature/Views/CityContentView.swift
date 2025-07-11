@@ -8,13 +8,10 @@
 import SwiftUI
 import Utility
 
-struct CityContentView: View, Identifiable {
-  private let city: City
-  private let isSelected: Bool
-  private let distanceText: String?
-
-  /// Identifiable
-  nonisolated var id: Int { city.id }
+struct CityContentView: View {
+  let city: City
+  let isSelected: Bool
+  let distanceText: String?
 
   init(
     city: City,
@@ -23,30 +20,23 @@ struct CityContentView: View, Identifiable {
   ) {
     self.city = city
     self.isSelected = isSelected
-    
+
     distanceText = Self.distanceText(from: city.coordinate, to: userCoordinate)
   }
   
   var body: some View {
     HStack {
       if isSelected {
-        Image(systemName: "checkmark.circle.fill")
-          .resizable()
-          .aspectRatio(contentMode: .fit)
-          .frame(maxSquare: 24)
-          .symbolRenderingMode(.palette)
-          .foregroundStyle(Color.white, Color.citySelection)
+        CheckmarkView()
       }
       
-      TextView()
-      
+      DescriptionView()
+
       Spacer()
       
       if let distanceText {
-        Text(distanceText)
-          .font(.footnote)
+        DistanceView(distanceText)
           .frame(minWidth: 68, alignment: .trailing)
-          .foregroundStyle(Color.secondary)
           .layoutPriority(1)
       }
     }
@@ -55,22 +45,33 @@ struct CityContentView: View, Identifiable {
     .animation(.smooth, value: distanceText)
     .allowsHitTesting(false)
   }
-  
-  @ViewBuilder private func TextView() -> some View {
-    VStack(
-      alignment: .leading,
-      spacing: 0,
-      content: {
-        Text(city.name)
-          .fontWeight(fontWeight())
-        
-        if let subject = city.subject {
-          Text(subject)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-        }
+
+  @ViewBuilder private func CheckmarkView() -> some View {
+    Image(systemName: "checkmark.circle.fill")
+      .resizable()
+      .aspectRatio(contentMode: .fit)
+      .frame(maxSquare: 24)
+      .symbolRenderingMode(.palette)
+      .foregroundStyle(Color.white, Color.citySelection)
+  }
+
+  @ViewBuilder private func DistanceView(_ distanceText: String) -> some View {
+    Text(distanceText)
+      .font(.footnote)
+      .foregroundStyle(Color.secondary)
+  }
+
+  @ViewBuilder private func DescriptionView() -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text(city.name)
+        .fontWeight(fontWeight())
+
+      if let subject = city.subject {
+        Text(subject)
+          .font(.footnote)
+          .foregroundStyle(.secondary)
       }
-    )
+    }
   }
   
   private func fontWeight() -> Font.Weight {
@@ -109,16 +110,10 @@ extension CityContentView {
 
 #Preview {
   struct ContentView: View {
-    static let cities: [City] = [
-      .moscow,
-      .saintPetersburg,
-      .blagoveshchensk
-    ]
-    
     @State private var isDarkTheme = false
     @State private var isSelected = false
-    
-    
+    let cities: [City]
+
     var body: some View {
       VStack {
         Toggle("isDarkTheme", isOn: $isDarkTheme)
@@ -126,7 +121,7 @@ extension CityContentView {
         
         ScrollView {
           VStack(spacing: 2) {
-            ForEach(ContentView.cities, id: \.id) { city in
+            ForEach(cities, id: \.id) { city in
               CityContentView(
                 city: city,
                 isSelected: isSelected
@@ -142,6 +137,11 @@ extension CityContentView {
       .padding()
     }
   }
-  
-  return ContentView()
+
+  let cities: [City] = [
+    .moscow,
+    .saintPetersburg,
+    .blagoveshchensk
+  ]
+  return ContentView(cities: cities)
 }

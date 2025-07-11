@@ -9,16 +9,8 @@ import SwiftUI
 import Utility
 
 struct DefineNearestCityButton: View {
-  private let isProcessing: Bool
-  private let action: () -> Void
-  
-  init(
-    isProcessing: Bool,
-    action: @escaping () -> Void
-  ) {
-    self.isProcessing = isProcessing
-    self.action = action
-  }
+  let isProcessing: Bool
+  let action: () -> Void
   
   var body: some View {
     Button(action: action) {
@@ -55,9 +47,10 @@ struct DefineNearestCityButton: View {
   VStack {
     Toggle("isProcessing", isOn: $isProcessing)
     
-    DefineNearestCityButton(isProcessing: isProcessing) {
-      isProcessing = true
-    }
+    DefineNearestCityButton(
+      isProcessing: isProcessing,
+      action: { isProcessing = true }
+    )
   }
   .padding()
 }
