@@ -37,7 +37,7 @@ public struct CitySelectionView: View {
       switch store.state.searchEngineRequestState {
       case .default:
         ZStack(alignment: .top) {
-          CitiesView()
+          CitiesPanelView()
           EdgeEffectView()
           SelectionHistoryPanelView()
           SearchPanelView()
@@ -109,6 +109,29 @@ public struct CitySelectionView: View {
     .animation(.keyboard, value: offset)
   }
   
+  @ViewBuilder private func CitiesEmptyView() -> some View {
+    let topPadding = contentTopPadding()
+
+    CitySearchEmptyView(onTap: { isSearchFocused = true })
+      .verticalGradientMaskWithPaddings(top: 24)
+      .padding(.top, topPadding)
+      .animation(.smooth, value: topPadding)
+      .ignoresSafeArea(.container, edges: .bottom)
+  }
+
+  @ViewBuilder private func CitiesPanelView() -> some View {
+    let isFoundNothing = store.state.isFoundNothing()
+
+    ZStack(alignment: .top) {
+      if isFoundNothing {
+        CitiesEmptyView()
+      } else {
+        CitiesView()
+      }
+    }
+    .animation(.smooth, value: isFoundNothing)
+  }
+
   @ViewBuilder private func CitiesView() -> some View {
     let topPadding = scrollTopPadding()
     
@@ -321,6 +344,13 @@ public struct CitySelectionView: View {
     )
   }
   
+  private func contentTopPadding() -> CGFloat {
+    let isHistoryVisible = store.state.isSelectionHistoryVisible
+    let historyHeight = isHistoryVisible ? selectionHistoryHeight : 0
+    let result = searchFieldFrames.content.height + historyHeight
+    return result
+  }
+
   private func scrollInsets() -> EdgeInsets {
     .init(
       top: .scrollAdditionalTopPadding,
@@ -329,11 +359,7 @@ public struct CitySelectionView: View {
   }
   
   private func scrollTopPadding() -> CGFloat {
-    let isHistoryVisible = store.state.isSelectionHistoryVisible
-    let historyHeight = isHistoryVisible ? selectionHistoryHeight : 0
-    let blockHeight = searchFieldFrames.content.height + historyHeight
-    let result = blockHeight - .scrollAdditionalTopPadding
-    return result
+    contentTopPadding() - .scrollAdditionalTopPadding
   }
 }
 

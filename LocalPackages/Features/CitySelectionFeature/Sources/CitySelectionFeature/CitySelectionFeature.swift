@@ -64,6 +64,10 @@ public struct CitySelectionFeature {
       searchEngine.cities[safe: id]
     }
     
+    func isFoundNothing() -> Bool {
+      cityIds.isEmpty && !searchQuery.isEmpty
+    }
+
     func isNeedSelectCity() -> Bool {
       selectedCityId == nil
     }
