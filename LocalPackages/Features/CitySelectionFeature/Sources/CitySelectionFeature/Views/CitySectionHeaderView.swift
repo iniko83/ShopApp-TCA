@@ -24,7 +24,7 @@ struct CitySectionHeaderView: View {
     self.gradientColor = gradientColor
   }
   
-  init(kind: CityTableSection.Kind) {
+  init(kind: ListSection.Kind) {
     let text = kind.headerTitle()
     self.init(text: text)
   }
@@ -96,7 +96,7 @@ struct GradientBackgroundView: View {
   }
 }
 
-private extension CityTableSection.Kind {
+private extension ListSection.Kind {
   func headerTitle() -> String {
     let result: String
     switch self {

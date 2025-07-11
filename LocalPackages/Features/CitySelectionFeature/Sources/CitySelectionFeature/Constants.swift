@@ -8,6 +8,10 @@
 import SwiftUI
 import Utility
 
+typealias ListSection = CitySelectionListSection
+typealias Toast = CitySelectionToast
+typealias ToastItem = CitySelectionToastItem
+
 extension Animation {
   static let rowSelection = Animation.smooth
 }

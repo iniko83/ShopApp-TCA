@@ -62,14 +62,15 @@ public struct CitySelectionView: View {
   }
   
   @ViewBuilder private func BottomNearestCityView() -> some View {
+    let locationRelatedData = store.state.sharedData.locationRelated
     VStack(spacing: 0) {
       Spacer()
-      
+
       NearestCityPanelView(
         selectedCityId: $store.selectedCityId,
-        city: store.state.nearestCity,
-        isProcessing: store.state.nearestCityRequestState.isProcessing,
-        userCoordinate: store.state.userCoordinate,
+        city: locationRelatedData.nearestCity,
+        isProcessing: locationRelatedData.nearestCityRequestState.isProcessing,
+        userCoordinate: locationRelatedData.userCoordinate,
         onTapDefineUserLocation: { store.send(.tapDefineUserLocation) }
       )
       .onGeometryChange(
@@ -93,7 +94,7 @@ public struct CitySelectionView: View {
       Spacer()
       
       CityToastListView(
-        items: store.toastItems,
+        toasts: store.state.sharedData.toast.list,
         onAction: { store.send(.toastAction($0)) }
       )
       .padding(.bottom)
@@ -135,9 +136,9 @@ public struct CitySelectionView: View {
     
     CityListView(
       selectedCityId: $store.selectedCityId,
-      sections: store.state.tableSections,
+      sections: store.state.listData.sections,
       cities: store.state.cities,
-      userCoordinate: store.state.userCoordinate,
+      userCoordinate: store.state.sharedData.locationRelated.userCoordinate,
       insets: scrollInsets()
     )
     .padding(.top, topPadding)
@@ -271,7 +272,7 @@ public struct CitySelectionView: View {
 
   @ViewBuilder private func SelectionHistoryPanelView() -> some View {
     let height = searchFieldFrames.content.height
-    let isSelectionHistoryVisible = store.state.isSelectionHistoryVisible
+    let isSelectionHistoryVisible = store.state.listData.isSelectionHistoryVisible
     let padding: CGFloat = 12
 
     VStack(spacing: 0) {
@@ -292,8 +293,8 @@ public struct CitySelectionView: View {
 
           CitySelectionHistoryView(
             selectedCityId: $store.selectedCityId,
-            cities: store.state.visibleSelectionHistoryCities,
-            userCoordinate: store.state.userCoordinate,
+            cities: store.state.listData.selectionHistoryCities,
+            userCoordinate: store.state.sharedData.locationRelated.userCoordinate,
             onRemoveCityId: { store.send(.removeCityIdFromSelectionHistory($0)) }
           )
           .padding(.bottom, padding)
@@ -338,7 +339,7 @@ public struct CitySelectionView: View {
   }
   
   private func contentTopPadding() -> CGFloat {
-    let isHistoryVisible = store.state.isSelectionHistoryVisible
+    let isHistoryVisible = store.state.listData.isSelectionHistoryVisible
     let historyHeight = isHistoryVisible ? selectionHistoryHeight : 0
     let result = searchFieldFrames.content.height + historyHeight
     return result

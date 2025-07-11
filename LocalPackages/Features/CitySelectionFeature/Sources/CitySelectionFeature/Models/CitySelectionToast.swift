@@ -1,5 +1,5 @@
 //
-//  CityToast.swift
+//  CitySelectionToast.swift
 //  CitySelectionFeature
 //
 //  Created by Igor Nikolaev on 01.07.2025.
@@ -7,20 +7,20 @@
 
 import Foundation
 
-public enum CityToastItem: Hashable {
-  case citySelectionRequired
-  case nearestCityFetchFailure
-}
-
-struct CityToast: Equatable {
-  let item: CityToastItem
+struct CitySelectionToast: Equatable {
+  let item: CitySelectionToastItem
   let timeoutStamp: TimeInterval?
   
   init(
-    item: CityToastItem,
+    item: CitySelectionToastItem,
     timeoutStamp: TimeInterval? = nil
   ) {
     self.item = item
     self.timeoutStamp = timeoutStamp
   }
+}
+
+public enum CitySelectionToastItem: Hashable {
+  case citySelectionRequired
+  case nearestCityFetchFailure
 }

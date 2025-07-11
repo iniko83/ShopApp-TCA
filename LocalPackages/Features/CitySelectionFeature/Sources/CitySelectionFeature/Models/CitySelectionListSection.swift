@@ -1,5 +1,5 @@
 //
-//  CityTableSection.swift
+//  CitySelectionListSection.swift
 //  CitySelectionFeature
 //
 //  Created by Igor Nikolaev on 24.06.2025.
@@ -13,7 +13,7 @@ import Utility
  таким образом все, что приходит в Action, будет видно снаружи.
  */
 
-public struct CityTableSection: Equatable, Identifiable, Sendable {
+public struct CitySelectionListSection: Equatable, Identifiable, Sendable {
   let kind: Kind
   let ids: [Int]
 
@@ -21,7 +21,7 @@ public struct CityTableSection: Equatable, Identifiable, Sendable {
   public var id: Int { kind.id }
 }
 
-extension CityTableSection {
+extension CitySelectionListSection {
   public enum Kind: Equatable, Identifiable, Sendable {
     case combinedSizes(CombinedCitySizes)
     case bigCities
@@ -48,4 +48,4 @@ extension CityTableSection {
   }
 }
 
-extension CityTableSection.CombinedCitySizes: CaseIterable {}
+extension CitySelectionListSection.CombinedCitySizes: CaseIterable {}

@@ -9,12 +9,12 @@ import SwiftUI
 import Utility
 
 public enum CityToastAction {
-  case removeItem(CityToastItem)
+  case removeItem(CitySelectionToastItem)
 }
 
 struct CityToastListView: View {
   @State private var contentHeight: CGFloat = 1
-  let items: [CityToastItem]
+  let toasts: [Toast]
   let onAction: (CityToastAction) -> Void
   
   var body: some View {
@@ -27,8 +27,8 @@ struct CityToastListView: View {
       
       ScrollView {
         VStack(spacing: 12) {
-          ForEach(items, id: \.hashValue) { item in
-            ToastView(item)
+          ForEach(toasts, id: \.item.hashValue) { toast in
+            ToastView(item: toast.item)
               .transition(.opacity.combined(with: .move(edge: .bottom)))
           }
         }
@@ -46,14 +46,14 @@ struct CityToastListView: View {
       .contentMargins(.vertical, scrollVerticalInset)
       .scrollBounceBehavior(.basedOnSize, axes: .vertical)
       .frame(height: contentHeight)
-      .animation(.smooth, value: items)
+      .animation(.smooth, value: toasts)
       .animation(.smooth, value: contentHeight)
     }
     .verticalGradientMask(padding: scrollVerticalInset)
     .padding(.vertical, -12)
   }
   
-  @ViewBuilder private func ToastView(_ item: CityToastItem) -> some View {
+  @ViewBuilder private func ToastView(item: ToastItem) -> some View {
     switch item {
     case .citySelectionRequired:
       makeToast(style: .information) { style in

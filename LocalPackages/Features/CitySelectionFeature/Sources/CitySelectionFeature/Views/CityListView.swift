@@ -12,7 +12,7 @@ struct CityListView: View {
   @Binding var selectedCityId: Int?
   @State private var scrollPositionCityId: Int?
 
-  let sections: [CityTableSection]
+  let sections: [ListSection]
   let cities: [City]
   let userCoordinate: Coordinate?
 
@@ -20,7 +20,7 @@ struct CityListView: View {
 
   init(
     selectedCityId: Binding<Int?>,
-    sections: [CityTableSection],
+    sections: [ListSection],
     cities: [City],
     userCoordinate: Coordinate?,
     insets: EdgeInsets

@@ -103,9 +103,9 @@ public struct CitySearchEngine: Sendable {
     let count = sortedItems.count
     let isDivided = threshold > 0 && threshold < count
     
-    let sections: [CityTableSection] = isDivided
-      ? CityTableSection.CombinedCitySizes.allCases
-        .map { sizes -> CityTableSection in
+    let sections: [ListSection] = isDivided
+      ? ListSection.CombinedCitySizes.allCases
+        .map { sizes -> ListSection in
           let range: Range<Int> = sizes == .bigAndMiddle
           ? (0 ..< threshold)
           : (threshold ..< count)
@@ -115,19 +115,23 @@ public struct CitySearchEngine: Sendable {
         }
       : [.init(kind: .untitled, ids: ids)]
     
-    return .init(ids: Set(ids), sections: sections)
+    return .init(
+      listSections: sections,
+      mapIds: Set(ids)
+    )
   }
   
   private static func makeDefaultResponse(cities: [City]) -> CitySearchResponse {
-    let ids = cities.map { $0.id }
+    let mapIds = cities.map { $0.id }
     let bigCityIds = cities
       .prefix(while: { $0.size == .big })
       .sorted(by: { $0.name < $1.name })
       .map { $0.id }
-    
+    let section = ListSection(kind: .bigCities, ids: bigCityIds)
+
     let searchResult = CitySearchResult(
-      ids: Set(ids),
-      sections: [.init(kind: .bigCities, ids: bigCityIds)]
+      listSections: [section],
+      mapIds: Set(mapIds)
     )
     return searchResult.makeResponse(query: .empty)
   }
@@ -144,10 +148,9 @@ public struct CitySearchResponse: Sendable {
 }
 
 public struct CitySearchResult: Sendable {
-  // FIXME: ids will be used on map later
-  let ids: Set<Int>
-  let sections: [CityTableSection]
-  
+  let listSections: [ListSection]
+  let mapIds: Set<Int>
+
   func makeResponse(query: String) -> CitySearchResponse {
     .init(result: self, query: query)
   }
