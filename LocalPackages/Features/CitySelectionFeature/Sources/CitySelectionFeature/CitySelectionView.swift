@@ -34,7 +34,10 @@ public struct CitySelectionView: View {
 
       case .loading:
         LoadingCitiesView()
-        
+
+      case .empty:
+        EmptyView()
+
       case let .error(error):
         ErrorView(error: error)
       }
@@ -57,6 +60,14 @@ public struct CitySelectionView: View {
         .tabItem { Color.clear }
         .toolbar(.hidden, for: .tabBar)
     }
+  }
+
+  @ViewBuilder private func EmptyView() -> some View {
+    EmptyContentView(
+      iconSystemName: "list.clipboard",
+      message: "Список городов пуст."
+    )
+    .padding(.cityCell)
   }
 
   @ViewBuilder private func ErrorView(error: RequestError) -> some View {

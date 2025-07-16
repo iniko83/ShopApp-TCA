@@ -7,7 +7,7 @@
 
 import LocationService
 
-public enum RequestLocationState: Equatable {
+@frozen public enum RequestLocationState: Equatable {
   case `default`
   case processing
   case error(LocationServiceError)

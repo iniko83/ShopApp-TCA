@@ -32,7 +32,7 @@ public struct CitySelectionFeature {
     fileprivate var searchQuery: String = .empty
     fileprivate(set) var queryInvalidSymbols: String = .empty
 
-    fileprivate(set) var searchEngineRequestState = RequestState()
+    fileprivate(set) var searchEngineRequestState = RequestListState()
 
     private var selectionHistoryCityIds = [Int]()
 
@@ -79,7 +79,7 @@ public struct CitySelectionFeature {
     }
    
     fileprivate func isNeedRequestSearchEngine() -> Bool {
-      searchEngine.isEmpty() && searchEngineRequestState != .loading
+      searchEngine.isEmpty() && !searchEngineRequestState.isLoadingOrEmpty()
     }
     
     fileprivate func isNeedRequestUserCoordinate() -> Bool {
@@ -381,7 +381,7 @@ public struct CitySelectionFeature {
       case let .responseSearchEngine(response):
         switch response {
         case let .success(value):
-          state.searchEngineRequestState = .default
+          state.searchEngineRequestState = value.isEmpty() ? .empty : .default
           state.setSearchEngine(value)
           // FIXME: big animation lag on launching app first time after install...
           state.isSearchFocused = true
