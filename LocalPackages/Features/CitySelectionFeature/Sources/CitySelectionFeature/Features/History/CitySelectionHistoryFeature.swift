@@ -6,7 +6,8 @@
 //
 
 import ComposableArchitecture
-import Sharing
+import Foundation
+import Utility
 
 @Reducer
 struct CitySelectionHistoryFeature {
@@ -16,15 +17,19 @@ struct CitySelectionHistoryFeature {
 
   @ObservableState
   struct State: Equatable {
-    @Shared fileprivate(set) var historyData: CitySelectionHistoryData
-    @Shared fileprivate(set) var sharedData: CitySelectionSharedData
+    fileprivate(set) var cities: [City]
+    fileprivate(set) var sharedData: CitySelectionSharedData
 
     init(
-      historyData: Shared<CitySelectionHistoryData>,
-      sharedData: Shared<CitySelectionSharedData>
+      cities: [City],
+      sharedData: CitySelectionSharedData
     ) {
-      _historyData = historyData
-      _sharedData = sharedData
+      self.cities = cities
+      self.sharedData = sharedData
+    }
+
+    func isCitiesVisible() -> Bool {
+      !cities.isEmpty
     }
   }
 
@@ -37,6 +42,8 @@ public enum CitySelectionHistoryAction {
   case delegate(Delegate)
 
   public enum Delegate {
+    case changeSelectedCityId(Int?)
+    case changeSelectionHistoryHeight(CGFloat)
     case removeCityIdFromSelectionHistory(Int)
   }
 }

@@ -6,7 +6,6 @@
 //
 
 import ComposableArchitecture
-import Sharing
 
 @Reducer
 struct CitySelectionListFeature {
@@ -16,15 +15,15 @@ struct CitySelectionListFeature {
 
   @ObservableState
   struct State: Equatable {
-    @Shared fileprivate(set) var listData: CitySelectionListData
-    @Shared fileprivate(set) var sharedData: CitySelectionSharedData
+    fileprivate(set) var listData: CitySelectionListData
+    fileprivate(set) var sharedData: CitySelectionSharedData
 
     init(
-      listData: Shared<CitySelectionListData>,
-      sharedData: Shared<CitySelectionSharedData>
+      listData: CitySelectionListData,
+      sharedData: CitySelectionSharedData
     ) {
-      _listData = listData
-      _sharedData = sharedData
+      self.listData = listData
+      self.sharedData = sharedData
     }
   }
 
@@ -37,6 +36,7 @@ public enum CitySelectionListAction {
   case delegate(Delegate)
 
   public enum Delegate {
+    case changeSelectedCityId(Int?)
     case focusSearch
     case tapDefineUserLocation
     case toastAction(CityToastAction)

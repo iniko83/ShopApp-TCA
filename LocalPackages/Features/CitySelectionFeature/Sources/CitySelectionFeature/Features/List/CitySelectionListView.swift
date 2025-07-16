@@ -15,8 +15,6 @@ import Utility
 struct CitySelectionListView: View {
   let store: StoreOf<CitySelectionListFeature>
 
-  @State private var selectedCityId: Int?
-
   @State private var isKeyboardShown = false
 
   @State private var bottomPanelFrames = Frames()
@@ -27,34 +25,23 @@ struct CitySelectionListView: View {
   }
 
   public var body: some View {
-    let listData = store.state.listData
-    let sharedData = store.state.sharedData
-
-    let globalSearchFieldFrame = sharedData.layout.searchFieldFrames.global
-    let listTopPadding = sharedData.layout.listTopPadding()
-
     ZStack(alignment: .top) {
-      CitiesPanelView(
-        listData: listData,
-        userCoordinate: sharedData.locationRelated.userCoordinate,
-        listTopPadding: listTopPadding
-      )
-      EdgeEffectView(globalSearchFieldFrame: globalSearchFieldFrame)
+      CitiesPanelView()
+      EdgeEffectView()
 
-      BottomToastPanelView(toastData: sharedData.toast)
-      BottomNearestCityView(locationRelatedData: sharedData.locationRelated)
+      BottomToastPanelView()
+      BottomNearestCityView()
     }
-    .bindShared(store.$sharedData.selectedCityId, to: $selectedCityId)
   }
 
-  @ViewBuilder private func BottomNearestCityView(
-    locationRelatedData: CitySelectionLocationRelatedData
-  ) -> some View {
+  @ViewBuilder private func BottomNearestCityView() -> some View {
+    let locationRelatedData = store.state.sharedData.locationRelated
+
     VStack(spacing: 0) {
       Spacer()
 
       NearestCityPanelView(
-        selectedCityId: $selectedCityId,
+        selectedCityId: bindingSelectedCityId(),
         city: locationRelatedData.nearestCity,
         isProcessing: locationRelatedData.nearestCityRequestState.isProcessing,
         userCoordinate: locationRelatedData.userCoordinate,
@@ -74,16 +61,14 @@ struct CitySelectionListView: View {
     .ignoresSafeArea(.keyboard)
   }
 
-  @ViewBuilder private func BottomToastPanelView(
-    toastData: CitySelectionToastData
-  ) -> some View {
+  @ViewBuilder private func BottomToastPanelView() -> some View {
     let offset = isKeyboardShown ? 0 : bottomPanelFrames.content.height
 
     VStack(spacing: 0) {
       Spacer()
 
       CityToastListView(
-        toasts: toastData.list,
+        toasts: store.state.sharedData.toast.list,
         onAction: { store.send(.delegate(.toastAction($0))) }
       )
       .padding(.bottom)
@@ -92,32 +77,25 @@ struct CitySelectionListView: View {
     }
   }
 
-  @ViewBuilder private func CitiesEmptyView(listTopPadding: CGFloat) -> some View {
+  @ViewBuilder private func CitiesEmptyView(topPadding: CGFloat) -> some View {
     CitySearchEmptyView(
       onTap: { store.send(.delegate(.focusSearch)) }
     )
     .verticalGradientMaskWithPaddings(top: 24)
-    .padding(.top, listTopPadding)
-    .animation(.smooth, value: listTopPadding)
+    .padding(.top, topPadding)
+    .animation(.smooth, value: topPadding)
     .ignoresSafeArea(.container, edges: .bottom)
   }
 
-  @ViewBuilder private func CitiesPanelView(
-    listData: CitySelectionListData,
-    userCoordinate: Coordinate?,
-    listTopPadding: CGFloat
-  ) -> some View {
-    let isFoundNothing = listData.isFoundNothing
+  @ViewBuilder private func CitiesPanelView() -> some View {
+    let isFoundNothing = store.state.listData.isFoundNothing
+    let topPadding = store.state.sharedData.layout.listTopPadding()
 
     ZStack(alignment: .top) {
       if isFoundNothing {
-        CitiesEmptyView(listTopPadding: listTopPadding)
+        CitiesEmptyView(topPadding: topPadding)
       } else {
-        CitiesView(
-          listData: listData,
-          userCoordinate: userCoordinate,
-          listTopPadding: listTopPadding
-        )
+        CitiesView(listTopPadding: topPadding)
       }
     }
     .animation(.smooth, value: isFoundNothing)
@@ -128,17 +106,13 @@ struct CitySelectionListView: View {
     )
   }
 
-  @ViewBuilder private func CitiesView(
-    listData: CitySelectionListData,
-    userCoordinate: Coordinate?,
-    listTopPadding: CGFloat
-  ) -> some View {
+  @ViewBuilder private func CitiesView(listTopPadding: CGFloat) -> some View {
     let topPadding = listTopPadding - .scrollAdditionalTopPadding
 
     CityListView(
-      selectedCityId: $selectedCityId,
-      sections: listData.sections,
-      userCoordinate: userCoordinate,
+      selectedCityId: bindingSelectedCityId(),
+      sections: store.state.listData.sections,
+      userCoordinate: store.state.sharedData.locationRelated.userCoordinate,
       insets: scrollInsets()
     )
     .padding(.top, topPadding)
@@ -146,10 +120,10 @@ struct CitySelectionListView: View {
     .scrollClipDisabled()
   }
 
-  @ViewBuilder private func EdgeEffectView(globalSearchFieldFrame: CGRect) -> some View {
+  @ViewBuilder private func EdgeEffectView() -> some View {
     Color.clear
       .scrollEdgeEffect(
-        edgeEffectScrollConfiguration(globalSearchFieldFrame: globalSearchFieldFrame)
+        edgeEffectScrollConfiguration()
       )
       .onGeometryChange(
         for: CGFloat.self,
@@ -160,20 +134,19 @@ struct CitySelectionListView: View {
       .ignoresSafeArea()
   }
 
-  private func edgeEffectScrollConfiguration(
-    globalSearchFieldFrame: CGRect
-  ) -> EdgeEffect.ScrollConfiguration {
+  private func edgeEffectScrollConfiguration() -> EdgeEffect.ScrollConfiguration {
     let contentPadding: CGFloat = 10
     let defaultBottomThreshold: CGFloat = 0.3
 
+    let globalSearchFieldFrame = store.state.sharedData.layout.searchFieldFrames.global
     let topHeight = globalSearchFieldFrame.maxY + contentPadding
     let bottomHeight: CGFloat = screenHeight > .zero
       ? screenHeight - (bottomPanelFrames.global.minY + contentPadding)
       : .zero
 
     let thresholdLocation: CGFloat = isKeyboardShown
-    ? defaultBottomThreshold * bottomPanelFrames.global.height / bottomHeight
-    : defaultBottomThreshold
+      ? defaultBottomThreshold * bottomPanelFrames.global.height / bottomHeight
+      : defaultBottomThreshold
 
     return .init(
       topEdgeConfiguration: .init(height: topHeight),
@@ -181,6 +154,16 @@ struct CitySelectionListView: View {
         height: bottomHeight,
         thresholdLocation: thresholdLocation
       )
+    )
+  }
+
+  private func bindingSelectedCityId() -> Binding<Int?> {
+    .init(
+      get: { store.sharedData.selectedCityId },
+      set: { cityId in
+        guard store.sharedData.selectedCityId != cityId else { return }
+        store.send(.delegate(.changeSelectedCityId(cityId)))
+      }
     )
   }
 

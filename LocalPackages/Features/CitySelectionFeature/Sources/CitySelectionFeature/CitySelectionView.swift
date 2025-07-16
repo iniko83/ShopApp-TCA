@@ -18,8 +18,6 @@ public struct CitySelectionView: View {
   @FocusState private var isSearchFocused: Bool
   @State private var searchText = String.empty
 
-  @State private var searchFieldFrames = Frames()
-
   public init(store: StoreOf<CitySelectionFeature>) {
     self.store = store
   }
@@ -41,7 +39,6 @@ public struct CitySelectionView: View {
         ErrorView(error: error)
       }
     }
-    .bindShared(store.$sharedData.layout.searchFieldFrames, to: $searchFieldFrames)
     .if(store.state.isInitialized) { content in
       content.animation(.smooth, value: store.state.searchEngineRequestState)
     }
@@ -152,7 +149,14 @@ public struct CitySelectionView: View {
               global: geometry.frame(in: .global)
             )
           },
-          action: { searchFieldFrames = $0 }
+          action: { frames in
+            store.send(
+              .changeSearchFieldFrames(
+                content: frames.content,
+                global: frames.global
+              )
+            )
+          }
         )
       
       VStack {

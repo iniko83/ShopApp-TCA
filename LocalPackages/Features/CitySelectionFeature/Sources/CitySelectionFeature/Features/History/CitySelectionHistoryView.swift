@@ -12,52 +12,43 @@ import Utility
 struct CitySelectionHistoryView: View {
   let store: StoreOf<CitySelectionHistoryFeature>
 
-  @State private var selectedCityId: Int?
-  @State private var selectionHistoryHeight = CGFloat.zero
-
   public init(store: StoreOf<CitySelectionHistoryFeature>) {
     self.store = store
   }
 
   public var body: some View {
-    let historyData = store.state.historyData
-    let sharedData = store.state.sharedData
+    let layout = store.state.sharedData.layout
 
-    let height = sharedData.layout.searchFieldFrames.content.height
-    let isListVisible = historyData.isVisible()
+    let height = layout.searchFieldFrames.content.height
+    let historyHeight = layout.selectionHistoryHeight
+    let isListVisible = store.state.isCitiesVisible()
 
     VStack(spacing: 0) {
       Spacer()
         .frame(height: height)
 
       if isListVisible {
-        ListView(
-          cities: historyData.cities,
-          userCoordinate: sharedData.locationRelated.userCoordinate
-        )
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        ListView()
+          .transition(.opacity.combined(with: .move(edge: .top)))
       }
 
       Spacer()
     }
-    .animation(.smooth, value: selectionHistoryHeight)
+    .animation(.smooth, value: historyHeight)
     .frame(maxWidth: .infinity)
     .animation(.smooth, value: isListVisible)
     .verticalGradientMaskWithPaddings(top: height)
     .animation(.smooth, value: height)
-    .bindShared(store.$sharedData.selectedCityId, to: $selectedCityId)
   }
 
-  @ViewBuilder private func ListView(
-    cities: [City],
-    userCoordinate: Coordinate?
-  ) -> some View {
+  @ViewBuilder private func ListView() -> some View {
+    let historyHeight = store.state.sharedData.layout.selectionHistoryHeight
     let padding: CGFloat = 12
 
     ZStack(alignment: .top) {
       Color.white
         .opacity(0.4)
-        .frame(height: selectionHistoryHeight)
+        .frame(height: historyHeight)
 
         .background(.ultraThinMaterial)
         .verticalGradientMaskWithPaddings(
@@ -66,9 +57,9 @@ struct CitySelectionHistoryView: View {
         )
 
       CitySelectionHistoryListView(
-        selectedCityId: $selectedCityId,
-        cities: cities,
-        userCoordinate: userCoordinate,
+        selectedCityId: bindingSelectedCityId(),
+        cities: store.state.cities,
+        userCoordinate: store.state.sharedData.locationRelated.userCoordinate,
         onRemoveCityId: { cityId in
           store.send(.delegate(.removeCityIdFromSelectionHistory(cityId)))
         }
@@ -79,10 +70,20 @@ struct CitySelectionHistoryView: View {
         for: CGFloat.self,
         of: { $0.size.height },
         action: { value in
-          selectionHistoryHeight = value
-          store.$sharedData.withLock { $0.layout.selectionHistoryHeight = value }
+          guard historyHeight != value else { return }
+          store.send(.delegate(.changeSelectionHistoryHeight(value)))
         }
       )
     }
+  }
+
+  private func bindingSelectedCityId() -> Binding<Int?> {
+    .init(
+      get: { store.sharedData.selectedCityId },
+      set: { cityId in
+        guard store.sharedData.selectedCityId != cityId else { return }
+        store.send(.delegate(.changeSelectedCityId(cityId)))
+      }
+    )
   }
 }

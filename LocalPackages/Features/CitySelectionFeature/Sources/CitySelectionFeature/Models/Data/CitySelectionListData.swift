@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Utility
 
 struct CitySelectionListData: Equatable {
   var isFoundNothing: Bool
@@ -26,11 +25,5 @@ extension CitySelectionListData {
       sections: [],
       searchQuery: .empty
     )
-  }
-
-  init(searchResponse: CitySearchResponse) {
-    isFoundNothing = searchResponse.isFoundNothing()
-    sections = searchResponse.result.listSections
-    searchQuery = searchResponse.query
   }
 }

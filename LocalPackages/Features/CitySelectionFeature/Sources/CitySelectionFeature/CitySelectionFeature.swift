@@ -1,15 +1,9 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 
-/*
- Sharing State explanations:
-  [ https://pointfreeco.github.io/swift-composable-architecture/main/documentation/composablearchitecture/sharingstate/ ]
- */
-
 import ComposableArchitecture
 import CoreLocation
 import Dependencies
-import Sharing
 import SwiftUI
 
 import LocationService
@@ -44,12 +38,13 @@ public struct CitySelectionFeature {
 
     private var selectionHistoryCityIds = [Int]()
 
-    @Shared fileprivate(set) var sharedData: CitySelectionSharedData
+    fileprivate(set) var sharedData = CitySelectionSharedData()
 
     // ignored
-    @Shared fileprivate(set) var historyData: CitySelectionHistoryData
-    @Shared fileprivate(set) var listData: CitySelectionListData
+    fileprivate(set) var listData = CitySelectionListData()
     fileprivate(set) var mapCityIds = Set<Int>()
+
+    fileprivate(set) var selectionHistoryCities = [City]()
 
     private(set) var isInitialized = false
     fileprivate(set) var isWantUserCoordinate = false
@@ -57,27 +52,21 @@ public struct CitySelectionFeature {
 
     var cities: [City] { searchEngine.cities }
 
-    private(set) var list: CitySelectionListFeature.State
-    private(set) var history: CitySelectionHistoryFeature.State
-
-    public init() {
-      let historyData = Shared(value: CitySelectionHistoryData())
-      let listData = Shared(value: CitySelectionListData())
-      let sharedData = Shared(value: CitySelectionSharedData())
-
-      _historyData = historyData
-      _listData = listData
-      _sharedData = sharedData
-
-      history = .init(
-        historyData: historyData,
+    var history: CitySelectionHistoryFeature.State {
+      .init(
+        cities: selectionHistoryCities,
         sharedData: sharedData
       )
-      list = .init(
+    }
+
+    var list: CitySelectionListFeature.State {
+      .init(
         listData: listData,
         sharedData: sharedData
       )
     }
+
+    public init() {}
 
     fileprivate func cities(ids: [Int]) -> [City] {
       ids.compactMap { cities[safe: $0] }
@@ -99,21 +88,19 @@ public struct CitySelectionFeature {
       isWantUserCoordinate
       && sharedData.locationRelated.userCoordinateRequestState != .processing
     }
-    
+
     mutating fileprivate func initialize(
       selectedCityId: Int?,
       selectionHistoryCityIds: [Int],
       isLocationServiceAuthorized: Bool
     ) {
-      $sharedData.withLock { $0.selectedCityId = selectedCityId }
+      sharedData.selectedCityId = selectedCityId
       setSelectionHistoryCityIds(selectionHistoryCityIds)
       
       isWantUserCoordinate = isLocationServiceAuthorized
 
       if isNeedSelectCity() {
-        $sharedData.withLock { data in
-          data.toast.list = [Toast(item: .citySelectionRequired)]
-        }
+        sharedData.toast.list = [Toast(item: .citySelectionRequired)]
       }
       
       isInitialized = true
@@ -122,18 +109,16 @@ public struct CitySelectionFeature {
     mutating func receiveUserCoordinateResponse(
       _ response: Result<Coordinate, LocationServiceError>
     ) {
-      $sharedData.withLock { sharedData in
-        var data = sharedData.locationRelated
-        switch response {
-        case let .success(coordinate):
-          data.userCoordinateRequestState = .default
-          data.userCoordinate = coordinate
+      var data = sharedData.locationRelated
+      switch response {
+      case let .success(coordinate):
+        data.userCoordinateRequestState = .default
+        data.userCoordinate = coordinate
 
-        case let .failure(error):
-          data.userCoordinateRequestState = .error(error)
-        }
-        sharedData.locationRelated = data
+      case let .failure(error):
+        data.userCoordinateRequestState = .error(error)
       }
+      sharedData.locationRelated = data
     }
 
     mutating fileprivate func setSearchEngine(_ engine: CitySearchEngine) {
@@ -148,41 +133,36 @@ public struct CitySelectionFeature {
     }
     
     mutating fileprivate func updateVisibleSelectionHistoryCities() {
-      let selectedCityId = sharedData.selectedCityId
       let cityIds = selectionHistoryCityIds.withRemovedFirst(
-        where: { $0 == selectedCityId }
+        where: { $0 == sharedData.selectedCityId }
       )
       let cities = cities(ids: cityIds)
-      let isVisible = !cities.isEmpty
+      let isVisible = !cityIds.isEmpty
 
-      $historyData.withLock { $0.cities = cities }
-      $sharedData.withLock { $0.layout.isSelectionHistoryVisible = isVisible }
+      selectionHistoryCities = cities
+      sharedData.layout.isSelectionHistoryVisible = isVisible
     }
 
     // MARK: Toast support
     mutating fileprivate func displayToastNearestCityFailure() {
-      $sharedData.withLock {
-        $0.toast.displayToast(
-          Toast(
-            item: .nearestCityFetchFailure,
-            timeoutStamp: Timestamp.timeout(3)
-          )
+      sharedData.toast.displayToast(
+        Toast(
+          item: .nearestCityFetchFailure,
+          timeoutStamp: Timestamp.timeout(3)
         )
-      }
+      )
     }
 
     mutating fileprivate func removeToast(item: ToastItem) {
-      $sharedData.withLock {
-        $0.toast.removeToast(item: item)
-      }
+      sharedData.toast.removeToast(item: item)
     }
 
     /// Equatable
     public static func == (lhs: State, rhs: State) -> Bool {
-      lhs.selectionHistoryCityIds == rhs.selectionHistoryCityIds
-      && lhs.isSearchFocused == rhs.isSearchFocused
+      lhs.isSearchFocused == rhs.isSearchFocused
       && lhs.searchQuery == rhs.searchQuery
       && lhs.searchEngineRequestState == rhs.searchEngineRequestState
+      && lhs.selectionHistoryCityIds == rhs.selectionHistoryCityIds
       && lhs.sharedData == rhs.sharedData
     }
   }
@@ -193,6 +173,7 @@ public struct CitySelectionFeature {
     case binding(BindingAction<State>)
     
     case changeLocationServiceAuthorizationStatus(CLAuthorizationStatus)
+    case changeSearchFieldFrames(content: CGRect, global: CGRect)
     case changeSelectedCityId(Int?)
     case changeSelectionHistoryCityIds([Int])
 
@@ -269,15 +250,12 @@ public struct CitySelectionFeature {
           state.isWantUserCoordinate = false
         }
 
-      case let .changeSelectedCityId(id):
-        if let id {
-          state.removeToast(item: .citySelectionRequired)
+      case let .changeSearchFieldFrames(content, global):
+        let frames = Frames(content: content, global: global)
+        state.sharedData.layout.searchFieldFrames = frames
 
-          if let city = state.city(id: id) {
-            let interactor = self.interactor
-            Task.onMainActor { interactor.selectCity(city) }
-          }
-        }
+      case let .changeSelectedCityId(id):
+        onChangeSelectedCityId(id, state: &state)
 
       case let .changeSelectionHistoryCityIds(ids):
         state.setSelectionHistoryCityIds(ids)
@@ -291,6 +269,12 @@ public struct CitySelectionFeature {
         switch historyAction {
         case let .delegate(delegateAction):
           switch delegateAction {
+          case let .changeSelectedCityId(id):
+            onChangeSelectedCityId(id, state: &state)
+
+          case let .changeSelectionHistoryHeight(value):
+            state.sharedData.layout.selectionHistoryHeight = value
+
           case let .removeCityIdFromSelectionHistory(id):
             let interactor = self.interactor
             Task.onMainActor { interactor.removeCityIdFromSelectionHistory(id) }
@@ -301,6 +285,9 @@ public struct CitySelectionFeature {
         switch listAction {
         case let .delegate(delegateAction):
           switch delegateAction {
+          case let .changeSelectedCityId(id):
+            onChangeSelectedCityId(id, state: &state)
+
           case .focusSearch:
             state.isSearchFocused = true
 
@@ -341,7 +328,6 @@ public struct CitySelectionFeature {
           effects += [
             locationServiceAuthorizationStatusStreamEffect(),
             networkAvailabilityStreamEffect(),
-            observeSelectionCityIdEffect(sharedData: state.$sharedData),
             selectionHistoryCityIdsStreamEffect()
           ]
         }
@@ -356,9 +342,7 @@ public struct CitySelectionFeature {
         }
         
       case let .receiveNearestCity(city):
-        state.$sharedData.withLock {
-          $0.locationRelated.nearestCity = city
-        }
+        state.sharedData.locationRelated.nearestCity = city
 
       case let .receiveSearchValidation(validation):
         var effects = [Effect<Action>]()
@@ -388,7 +372,11 @@ public struct CitySelectionFeature {
 
       case let .responseSearch(response):
         if state.searchQuery == response.query {
-          state.$listData.withLock { $0 = .init(searchResponse: response) }
+          state.listData = .init(
+            isFoundNothing: response.isFoundNothing(),
+            sections: response.result.listSections,
+            searchQuery: response.query
+          )
           state.mapCityIds = response.result.mapIds
         }
         
@@ -424,6 +412,17 @@ public struct CitySelectionFeature {
       return result
     }
     .ifLet(\.$alert, action: \.alert)
+  }
+
+  private func onChangeSelectedCityId(_ id: Int?, state: inout State) {
+    state.sharedData.selectedCityId = id
+
+    guard let id else { return }
+    state.removeToast(item: .citySelectionRequired)
+
+    guard let city = state.city(id: id) else { return }
+    let interactor = self.interactor
+    Task.onMainActor { interactor.selectCity(city) }
   }
 
   private func onTapDefineUserLocation(state: inout State) -> Effect<Action> {
@@ -517,12 +516,10 @@ public struct CitySelectionFeature {
   }
   
   private func toastExpirationTimerEffect(state: inout State) -> Effect<Action> {
-    let delay = state.$sharedData.withLock { sharedData in
-      sharedData.toast.removeExpiredToasts()
-      return sharedData.toast.nearestTimeoutDelay()
-    }
+    state.sharedData.toast.removeExpiredToasts()
 
     let result: Effect<Action>
+    let delay = state.sharedData.toast.nearestTimeoutDelay()
     if let delay {
       result = .send(.toastExpirationTick)
         .debounce(
@@ -556,20 +553,6 @@ public struct CitySelectionFeature {
     }
   }
 
-  private func observeSelectionCityIdEffect(
-    sharedData: Shared<CitySelectionSharedData>
-  ) -> Effect<Action> {
-    .run { send in
-      let selectedCityIdPublisher = sharedData.publisher
-        .map { $0.selectedCityId }
-        .removeDuplicates()
-        .values
-      for await id in selectedCityIdPublisher {
-        await send(.changeSelectedCityId(id))
-      }
-    }
-  }
-
   private func requestSearchEngineEffect(state: inout State) -> Effect<Action> {
     state.searchEngineRequestState = .loading
     
@@ -590,9 +573,7 @@ public struct CitySelectionFeature {
   
   private func requestUserCoordinateEffect(state: inout State) -> Effect<Action> {
     state.isWantUserCoordinate = false
-    state.$sharedData.withLock {
-      $0.locationRelated.userCoordinateRequestState = .processing
-    }
+    state.sharedData.locationRelated.userCoordinateRequestState = .processing
 
     return .run { [requestLocation = locationService.requestLocation] send in
       let locationResult = await requestLocation()
