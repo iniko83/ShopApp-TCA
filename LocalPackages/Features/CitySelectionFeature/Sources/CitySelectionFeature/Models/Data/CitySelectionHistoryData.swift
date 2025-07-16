@@ -9,27 +9,13 @@ import Foundation
 import Utility
 
 struct CitySelectionHistoryData: Equatable {
-  var cityIds: [Int]
+  var cities: [City]
 
-  // ignored in equatable
-  var allCities: [City]
-
-  var isVisible: Bool { !cityIds.isEmpty }
-
-  init(
-    cityIds: [Int] = [],
-    allCities: [City] = []
-  ) {
-    self.cityIds = cityIds
-    self.allCities = allCities
+  init(cities: [City] = []) {
+    self.cities = cities
   }
 
-  func cities() -> [City] {
-    cityIds.compactMap { allCities[safe: $0] }
-  }
-
-  /// Equatable
-  static func == (lhs: CitySelectionHistoryData, rhs: CitySelectionHistoryData) -> Bool {
-    lhs.cityIds == rhs.cityIds
+  func isVisible() -> Bool {
+    !cities.isEmpty
   }
 }

@@ -15,7 +15,7 @@ import Utility
 
 public struct CitySelectionListSection: Equatable, Identifiable, Sendable {
   let kind: Kind
-  let ids: [Int]
+  let cities: [City]
 
   /// Identifiable
   public var id: Int { kind.id }

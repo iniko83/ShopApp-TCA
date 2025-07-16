@@ -44,7 +44,11 @@ public struct CitySearchEngine: Sendable {
     let searchItems = searchItems(query: query)
     return makeResult(searchItems: searchItems)
   }
-  
+
+  private func cities(ids: [Int]) -> [City] {
+    ids.map { cities[$0] }
+  }
+
   private func searchItems(query: String) -> [CitySearchItem] {
     let queryParts = query.components(separatedBy: String.space)
     let queryPartsCount = queryParts.count
@@ -109,12 +113,15 @@ public struct CitySearchEngine: Sendable {
           let range: Range<Int> = sizes == .bigAndMiddle
           ? (0 ..< threshold)
           : (threshold ..< count)
-          let ids = Array(sortedItems[safe: range].map { $0.item.index })
-          
-          return .init(kind: .combinedSizes(sizes), ids: ids)
+          let citiesSlice = sortedItems[safe: range]
+            .map { sortedItem -> City in
+              let id = sortedItem.item.index
+              return cities[id]
+            }
+          return .init(kind: .combinedSizes(sizes), cities: Array(citiesSlice))
         }
-      : [.init(kind: .untitled, ids: ids)]
-    
+      : [.init(kind: .untitled, cities: cities(ids: ids))]
+
     return .init(
       listSections: sections,
       mapIds: Set(ids)
@@ -123,11 +130,10 @@ public struct CitySearchEngine: Sendable {
   
   private static func makeDefaultResponse(cities: [City]) -> CitySearchResponse {
     let mapIds = cities.map { $0.id }
-    let bigCityIds = cities
+    let bigCities = cities
       .prefix(while: { $0.size == .big })
       .sorted(by: { $0.name < $1.name })
-      .map { $0.id }
-    let section = ListSection(kind: .bigCities, ids: bigCityIds)
+    let section = ListSection(kind: .bigCities, cities: bigCities)
 
     let searchResult = CitySearchResult(
       listSections: [section],
@@ -139,7 +145,7 @@ public struct CitySearchEngine: Sendable {
 
 /*
  Sections will contain [.bigCities] for default and [.untitled] or [CombinedCitySizes.allCases] for search.
- Each section contains alphabetically ordered city ids.
+ Each section contains alphabetically ordered cities.
 */
 
 public struct CitySearchResponse: Sendable {

@@ -78,12 +78,16 @@ public struct CitySelectionFeature {
         sharedData: sharedData
       )
     }
-    
-    func city(id: Int) -> City? {
+
+    fileprivate func cities(ids: [Int]) -> [City] {
+      ids.compactMap { cities[safe: $0] }
+    }
+
+    fileprivate func city(id: Int) -> City? {
       cities[safe: id]
     }
-    
-    func isNeedSelectCity() -> Bool {
+
+    fileprivate func isNeedSelectCity() -> Bool {
       sharedData.selectedCityId == nil
     }
    
@@ -134,22 +138,24 @@ public struct CitySelectionFeature {
 
     mutating fileprivate func setSearchEngine(_ engine: CitySearchEngine) {
       searchEngine = engine
-      updateVisibleSelectionHistoryCityIds()
+      updateVisibleSelectionHistoryCities()
     }
 
     // MARK: Selection history support
     mutating fileprivate func setSelectionHistoryCityIds(_ ids: [Int]) {
       selectionHistoryCityIds = ids
-      updateVisibleSelectionHistoryCityIds()
+      updateVisibleSelectionHistoryCities()
     }
     
-    mutating fileprivate func updateVisibleSelectionHistoryCityIds() {
+    mutating fileprivate func updateVisibleSelectionHistoryCities() {
       let selectedCityId = sharedData.selectedCityId
       let cityIds = selectionHistoryCityIds.withRemovedFirst(
         where: { $0 == selectedCityId }
       )
-      let isVisible = !cityIds.isEmpty
-      $historyData.withLock { $0.cityIds = cityIds }
+      let cities = cities(ids: cityIds)
+      let isVisible = !cities.isEmpty
+
+      $historyData.withLock { $0.cities = cities }
       $sharedData.withLock { $0.layout.isSelectionHistoryVisible = isVisible }
     }
 
@@ -382,7 +388,7 @@ public struct CitySelectionFeature {
 
       case let .responseSearch(response):
         if state.searchQuery == response.query {
-          state.$listData.withLock { $0.applyResponse(response) }
+          state.$listData.withLock { $0 = .init(searchResponse: response) }
           state.mapCityIds = response.result.mapIds
         }
         
@@ -391,8 +397,6 @@ public struct CitySelectionFeature {
         case let .success(value):
           state.searchEngineRequestState = .default
           state.setSearchEngine(value)
-          state.$historyData.withLock { $0.allCities = value.cities }
-          state.$listData.withLock { $0.allCities = value.cities }
           // FIXME: big animation lag on launching app first time after install...
           state.isSearchFocused = true
 

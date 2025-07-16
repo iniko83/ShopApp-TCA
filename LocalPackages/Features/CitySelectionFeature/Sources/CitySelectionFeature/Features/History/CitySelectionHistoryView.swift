@@ -24,7 +24,7 @@ struct CitySelectionHistoryView: View {
     let sharedData = store.state.sharedData
 
     let height = sharedData.layout.searchFieldFrames.content.height
-    let isListVisible = historyData.isVisible
+    let isListVisible = historyData.isVisible()
 
     VStack(spacing: 0) {
       Spacer()
@@ -32,7 +32,7 @@ struct CitySelectionHistoryView: View {
 
       if isListVisible {
         ListView(
-          cities: historyData.cities(),
+          cities: historyData.cities,
           userCoordinate: sharedData.locationRelated.userCoordinate
         )
         .transition(.opacity.combined(with: .move(edge: .top)))

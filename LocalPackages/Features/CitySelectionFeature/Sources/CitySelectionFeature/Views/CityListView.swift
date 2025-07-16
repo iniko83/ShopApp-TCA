@@ -17,20 +17,16 @@ struct CityListView: View {
 
   let insets: EdgeInsets
 
-  let cities: (_ ids: [Int]) -> [City]
-
   init(
     selectedCityId: Binding<Int?>,
     sections: [ListSection],
     userCoordinate: Coordinate?,
-    insets: EdgeInsets,
-    cities: @escaping (_ ids: [Int]) -> [City]
+    insets: EdgeInsets
   ) {
     _selectedCityId = selectedCityId
     self.sections = sections
     self.userCoordinate = userCoordinate
     self.insets = insets
-    self.cities = cities
   }
   
   var body: some View {
@@ -39,8 +35,7 @@ struct CityListView: View {
         ForEach(sections, id: \.id) { section in
           Section(
             content: {
-              let cities = cities(section.ids)
-              ForEach(cities, id: \.id) { RowView(city: $0) }
+              ForEach(section.cities, id: \.id) { RowView(city: $0) }
             },
             header: { CitySectionHeaderView(kind: section.kind) }
           )
@@ -55,7 +50,7 @@ struct CityListView: View {
     .scrollPosition(id: $scrollPositionCityId)
     .animation(.smooth, value: scrollPositionCityId)
     .onChange(of: sections) { (_, newValue) in
-      guard let id = newValue.first?.ids.first else { return }
+      guard let id = newValue.first?.cities.first?.id else { return }
       scrollPositionCityId = id
     }
   }

@@ -139,8 +139,7 @@ struct CitySelectionListView: View {
       selectedCityId: $selectedCityId,
       sections: listData.sections,
       userCoordinate: userCoordinate,
-      insets: scrollInsets(),
-      cities: { ids in listData.cities(ids: ids) }
+      insets: scrollInsets()
     )
     .padding(.top, topPadding)
     .animation(.smooth, value: topPadding)
