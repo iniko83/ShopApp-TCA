@@ -121,18 +121,22 @@ public struct CitySelectionView: View {
           action: { self.isSearchFocused = false },
           label: {
             Text(String.cancellation)
-              .tint(.black)
+              .tint(.primary)
+              .padding(.leading, 8)
+              .padding(.trailing, 16)
+              .frame(maxHeight: .infinity)
           }
         )
+        .buttonStyle(.borderless)
         .allowsHitTesting(isSearchFocused)
-        .fixedSize()
-        .padding(.leading, 8)
         .transition(.opacity.combined(with: .move(edge: .trailing)))
       }
     }
     .fixedSize(horizontal: false, vertical: true)
     .animation(animation, value: isSearchFocused)
-    .padding(EdgeInsets(top: 0, leading: 16, bottom: 2, trailing: 16))
+    .padding(
+      EdgeInsets(top: 0, leading: 16, bottom: 2, trailing: isSearchFocused ? 0 : 16)
+    )
   }
   
   @ViewBuilder private func SearchPanelView() -> some View {

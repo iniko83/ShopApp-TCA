@@ -11,8 +11,6 @@ import NetworkClient
 import NetworkConnectionService
 import Utility
 
-// FIXME: dark mode
-
 @Reducer
 public struct CitySelectionFeature {
   @Dependency(\.mainQueue) var mainQueue

@@ -19,13 +19,20 @@ struct NearestCityPanelView: View {
     let isCityHidden = city == nil
     ZStack {
       if let city {
+        let id = city.id
+
         NearestCityView(city)
           .background(
-            Color.white
+            Color(.systemBackground)
               .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
-              .shadow(radius: 16)
+              .shadow(color: .backgroundShadow, radius: 16)
               .mask(Rectangle().padding(.top, -36))
               .ignoresSafeArea(.all, edges: .bottom)
+              .overlay {
+                CellHighlightingButton(action: { selectedCityId = id })
+                  .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
+                  .ignoresSafeArea(.all, edges: .bottom)
+              }
           )
           .transition(.opacity.combined(with: .move(edge: .bottom)))
       } else {
@@ -48,35 +55,29 @@ struct NearestCityPanelView: View {
   }
   
   @ViewBuilder private func NearestCityView(_ city: City) -> some View {
-    let id = city.id
-    let isSelected = selectedCityId == id
+    let isSelected = selectedCityId == city.id
 
-    ZStack {
-      CellHighlightingButton(action: { selectedCityId = id })
+    HStack {
+      VStack(spacing: 0) {
+        Text("Ближайший город:")
+          .font(.footnote)
+          .frame(maxWidth: .infinity, alignment: .leading)
 
-      HStack {
-        VStack(spacing: 0) {
-          Text("Ближайший город:")
-            .font(.footnote)
-            .frame(maxWidth: .infinity, alignment: .leading)
-          
-          CityContentView(
-            city: city,
-            isSelected: isSelected,
-            userCoordinate: userCoordinate
-          )
-          .animation(.rowSelection, value: selectedCityId)
-        }
-        
-        RefreshButton(
-          isProcessing: isProcessing,
-          action: onTapDefineUserLocation
+        CityContentView(
+          city: city,
+          isSelected: isSelected,
+          userCoordinate: userCoordinate
         )
-        .frame(square: 36)
+        .animation(.rowSelection, value: selectedCityId)
       }
-      .padding(.cityCell)
+
+      RefreshButton(
+        isProcessing: isProcessing,
+        action: onTapDefineUserLocation
+      )
+      .frame(square: 36)
     }
-    .fixedSize(horizontal: false, vertical: true)
+    .padding(.cityCell)
   }
 }
 

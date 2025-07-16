@@ -47,6 +47,7 @@ struct CityListView: View {
     .contentMargins(.all, insets, for: .automatic)
     // FIXME: sometimes scroll animation position cell at header place
     // FIXME: may be solution: https://stackoverflow.com/a/78033285
+    // FIXME: or may be use List instead (sometimes cells jump from bottom to top via scrolling)
     .scrollPosition(id: $scrollPositionCityId)
     .animation(.smooth, value: scrollPositionCityId)
     .onChange(of: sections) { (_, newValue) in

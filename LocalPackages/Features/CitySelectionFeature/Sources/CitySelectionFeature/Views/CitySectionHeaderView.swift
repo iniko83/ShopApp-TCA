@@ -44,7 +44,7 @@ struct CitySectionHeaderView: View {
         
         Text(text)
           .fontWeight(.medium)
-          .foregroundStyle(.black.opacity(0.8))
+          .opacity(0.8)
           .multilineTextAlignment(textAlignment)
           .frame(maxWidth: .infinity, alignment: alignment)
           .padding(EdgeInsets(horizontal: 16, vertical: 4))

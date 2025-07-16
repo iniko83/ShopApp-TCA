@@ -12,6 +12,8 @@ public extension Animation {
 }
 
 public extension Color {
+  static let backgroundShadow = Color.dynamicRgbaHex(dark: 0xffffff54, light: 0x00000054)
+
   static let cellHighlighted = Color.dynamicRgbaHex(dark: 0xd9d9d919, light: 0xcdcdcd19)
 
   static let mainAccent = Color.dynamicRgbHex(dark: 0xe3546d, light: 0xf8395a)
