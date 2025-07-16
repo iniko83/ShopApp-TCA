@@ -13,32 +13,33 @@ struct CityListView: View {
   @State private var scrollPositionCityId: Int?
 
   let sections: [ListSection]
-  let cities: [City]
   let userCoordinate: Coordinate?
 
   let insets: EdgeInsets
 
+  let cities: (_ ids: [Int]) -> [City]
+
   init(
     selectedCityId: Binding<Int?>,
     sections: [ListSection],
-    cities: [City],
     userCoordinate: Coordinate?,
-    insets: EdgeInsets
+    insets: EdgeInsets,
+    cities: @escaping (_ ids: [Int]) -> [City]
   ) {
     _selectedCityId = selectedCityId
     self.sections = sections
-    self.cities = cities
     self.userCoordinate = userCoordinate
     self.insets = insets
+    self.cities = cities
   }
   
   var body: some View {
     ScrollView {
       LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
         ForEach(sections, id: \.id) { section in
-          let cities = section.ids.compactMap { id in self.cities[safe: id] }
           Section(
             content: {
+              let cities = cities(section.ids)
               ForEach(cities, id: \.id) { RowView(city: $0) }
             },
             header: { CitySectionHeaderView(kind: section.kind) }

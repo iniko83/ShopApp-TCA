@@ -18,14 +18,8 @@ public struct CitySelectionView: View {
   @FocusState private var isSearchFocused: Bool
   @State private var searchText = String.empty
 
-  @State private var isKeyboardShown = false
-
-  @State private var screenHeight = CGFloat.zero
-  @State private var selectionHistoryHeight = CGFloat.zero
-
-  @State private var bottomPanelFrames = Frames()
   @State private var searchFieldFrames = Frames()
-    
+
   public init(store: StoreOf<CitySelectionFeature>) {
     self.store = store
   }
@@ -35,16 +29,11 @@ public struct CitySelectionView: View {
       switch store.state.searchEngineRequestState {
       case .default:
         ZStack(alignment: .top) {
-          CitiesPanelView()
-          EdgeEffectView()
-          SelectionHistoryPanelView()
+          TabsView()
           SearchPanelView()
-
-          BottomToastPanelView()
-          BottomNearestCityView()
         }
         .coordinateSpace(name: CoordinateSpaces.content)
-        
+
       case .loading:
         LoadingCitiesView()
         
@@ -52,6 +41,7 @@ public struct CitySelectionView: View {
         ErrorView(error: error)
       }
     }
+    .bindShared(store.$sharedData.layout.searchFieldFrames, to: $searchFieldFrames)
     .if(store.state.isInitialized) { content in
       content.animation(.smooth, value: store.state.searchEngineRequestState)
     }
@@ -60,104 +50,18 @@ public struct CitySelectionView: View {
       store.send(.onAppear)
     }
   }
-  
-  @ViewBuilder private func BottomNearestCityView() -> some View {
-    let locationRelatedData = store.state.sharedData.locationRelated
-    VStack(spacing: 0) {
-      Spacer()
 
-      NearestCityPanelView(
-        selectedCityId: $store.selectedCityId,
-        city: locationRelatedData.nearestCity,
-        isProcessing: locationRelatedData.nearestCityRequestState.isProcessing,
-        userCoordinate: locationRelatedData.userCoordinate,
-        onTapDefineUserLocation: { store.send(.tapDefineUserLocation) }
-      )
-      .onGeometryChange(
-        for: Frames.self,
-        of: { geometry in
-          Frames(
-            content: geometry.frame(in: .named(CoordinateSpaces.content)),
-            global: geometry.frame(in: .global)
-          )
-        },
-        action: { bottomPanelFrames = $0 }
-      )
-    }
-    .ignoresSafeArea(.keyboard)
-  }
-
-  @ViewBuilder private func BottomToastPanelView() -> some View {
-    let offset = isKeyboardShown ? 0 : bottomPanelFrames.content.height
-    
-    VStack(spacing: 0) {
-      Spacer()
-      
-      CityToastListView(
-        toasts: store.state.sharedData.toast.list,
-        onAction: { store.send(.toastAction($0)) }
-      )
-      .padding(.bottom)
-      .padding(.bottom, offset)
-      .animation(.spring(.keyboard), value: offset)
-    }
-  }
-  
-  @ViewBuilder private func CitiesEmptyView() -> some View {
-    let topPadding = contentTopPadding()
-
-    CitySearchEmptyView(onTap: { isSearchFocused = true })
-      .verticalGradientMaskWithPaddings(top: 24)
-      .padding(.top, topPadding)
-      .animation(.smooth, value: topPadding)
-      .ignoresSafeArea(.container, edges: .bottom)
-  }
-
-  @ViewBuilder private func CitiesPanelView() -> some View {
-    let isFoundNothing = store.state.isFoundNothing()
-
-    ZStack(alignment: .top) {
-      if isFoundNothing {
-        CitiesEmptyView()
-      } else {
-        CitiesView()
+  @ViewBuilder private func TabsView() -> some View {
+    TabView {
+      ZStack {
+        CitySelectionListView(store: store.scope(state: \.list, action: \.list))
+        CitySelectionHistoryView(store: store.scope(state: \.history, action: \.history))
       }
+        .tabItem { Color.clear }
+        .toolbar(.hidden, for: .tabBar)
     }
-    .animation(.smooth, value: isFoundNothing)
-    .onGeometryChange(
-      for: Bool.self,
-      of: { $0.safeAreaInsets.bottom > 100 },
-      action: { isKeyboardShown = $0 }
-    )
   }
 
-  @ViewBuilder private func CitiesView() -> some View {
-    let topPadding = scrollTopPadding()
-    
-    CityListView(
-      selectedCityId: $store.selectedCityId,
-      sections: store.state.listData.sections,
-      cities: store.state.cities,
-      userCoordinate: store.state.sharedData.locationRelated.userCoordinate,
-      insets: scrollInsets()
-    )
-    .padding(.top, topPadding)
-    .animation(.smooth, value: topPadding)
-    .scrollClipDisabled()
-  }
-  
-  @ViewBuilder private func EdgeEffectView() -> some View {
-    Color.clear
-      .scrollEdgeEffect(edgeEffectScrollConfiguration())
-      .onGeometryChange(
-        for: CGFloat.self,
-        of: { $0.size.height },
-        action: { screenHeight = $0 }
-      )
-      .allowsHitTesting(false)
-      .ignoresSafeArea()
-  }
-  
   @ViewBuilder private func ErrorView(error: RequestError) -> some View {
     RequestErrorView(
       configuration: .init(
@@ -269,124 +173,6 @@ public struct CitySelectionView: View {
     }
     .animation(.smooth, value: isShowQueryToast)
   }
-
-  @ViewBuilder private func SelectionHistoryPanelView() -> some View {
-    let height = searchFieldFrames.content.height
-    let isSelectionHistoryVisible = store.state.listData.isSelectionHistoryVisible
-    let padding: CGFloat = 12
-
-    VStack(spacing: 0) {
-      Spacer()
-        .frame(height: height)
-
-      if isSelectionHistoryVisible {
-        ZStack(alignment: .top) {
-          Color.white
-            .opacity(0.4)
-            .frame(height: selectionHistoryHeight)
-            .animation(.smooth, value: selectionHistoryHeight)
-            .background(.ultraThinMaterial)
-            .verticalGradientMaskWithPaddings(
-              top: 0.5 * padding,
-              bottom: padding
-            )
-
-          CitySelectionHistoryView(
-            selectedCityId: $store.selectedCityId,
-            cities: store.state.listData.selectionHistoryCities,
-            userCoordinate: store.state.sharedData.locationRelated.userCoordinate,
-            onRemoveCityId: { store.send(.removeCityIdFromSelectionHistory($0)) }
-          )
-          .padding(.bottom, padding)
-          .geometryGroup()
-          .onGeometryChange(
-            for: CGFloat.self,
-            of: { $0.size.height },
-            action: { selectionHistoryHeight = $0 }
-          )
-        }
-        .transition(.opacity.combined(with: .move(edge: .top)))
-      }
-
-      Spacer()
-    }
-    .frame(maxWidth: .infinity)
-    .animation(.smooth, value: isSelectionHistoryVisible)
-    .verticalGradientMaskWithPaddings(top: height)
-    .animation(.smooth, value: height)
-  }
-
-  private func edgeEffectScrollConfiguration() -> EdgeEffect.ScrollConfiguration {
-    let contentPadding: CGFloat = 10
-    let defaultBottomThreshold: CGFloat = 0.3
-    
-    let topHeight = searchFieldFrames.global.maxY + contentPadding
-    let bottomHeight: CGFloat = screenHeight > .zero
-      ? screenHeight - (bottomPanelFrames.global.minY + contentPadding)
-      : .zero
-    
-    let thresholdLocation: CGFloat = isKeyboardShown
-      ? defaultBottomThreshold * bottomPanelFrames.global.height / bottomHeight
-      : defaultBottomThreshold
-    
-    return .init(
-      topEdgeConfiguration: .init(height: topHeight),
-      bottomEdgeConfiguration: .init(
-        height: bottomHeight,
-        thresholdLocation: thresholdLocation
-      )
-    )
-  }
-  
-  private func contentTopPadding() -> CGFloat {
-    let isHistoryVisible = store.state.listData.isSelectionHistoryVisible
-    let historyHeight = isHistoryVisible ? selectionHistoryHeight : 0
-    let result = searchFieldFrames.content.height + historyHeight
-    return result
-  }
-
-  private func scrollInsets() -> EdgeInsets {
-    .init(
-      top: .scrollAdditionalTopPadding,
-      bottom: isKeyboardShown ? 0 : bottomPanelFrames.content.height
-    )
-  }
-  
-  private func scrollTopPadding() -> CGFloat {
-    contentTopPadding() - .scrollAdditionalTopPadding
-  }
-}
-
-extension CitySelectionView {
-  private enum CoordinateSpaces {
-    case content
-  }
-
-  private struct Frames: Equatable {
-    let content: CGRect
-    let global: CGRect
-    
-    init(
-      content: CGRect,
-      global: CGRect
-    ) {
-      self.content = content
-      self.global = global
-    }
-    
-    init() {
-      self.init(
-        content: .zero,
-        global: .zero
-      )
-    }
-  }
-}
-
-
-/// Constants
-private extension CGFloat {
-  static let scrollAdditionalTopPadding: CGFloat = 200
 }
 
 

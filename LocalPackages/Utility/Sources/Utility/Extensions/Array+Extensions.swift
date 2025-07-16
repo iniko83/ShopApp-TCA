@@ -16,6 +16,14 @@ extension Array where Element: Equatable {
     guard let index = firstIndex(where: predicate) else { return }
     remove(at: index)
   }
+
+  @inlinable public func withRemovedFirst(
+    where predicate: (Element) -> Bool
+  ) -> [Element] {
+    var result = self
+    result.removeFirst(where: predicate)
+    return result
+  }
 }
 
 // Based on: [ https://stackoverflow.com/a/37560630 ]

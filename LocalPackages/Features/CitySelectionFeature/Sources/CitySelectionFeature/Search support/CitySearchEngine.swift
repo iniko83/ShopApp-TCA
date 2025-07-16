@@ -145,6 +145,10 @@ public struct CitySearchEngine: Sendable {
 public struct CitySearchResponse: Sendable {
   let result: CitySearchResult
   let query: String
+
+  func isFoundNothing() -> Bool {
+    !query.isEmpty && result.mapIds.isEmpty
+  }
 }
 
 public struct CitySearchResult: Sendable {

@@ -17,6 +17,8 @@ import NetworkClient
 import NetworkConnectionService
 import Utility
 
+// FIXME: dark mode
+
 @Reducer
 public struct CitySelectionFeature {
   @Dependency(\.mainQueue) var mainQueue
@@ -33,19 +35,19 @@ public struct CitySelectionFeature {
   public struct State: Equatable {
     @Presents var alert: AlertState<Action.Alert>?
     
-    @Shared public var selectedCityId: Int?
-    private var selectionHistoryCityIds = [Int]()
-    
     var isSearchFocused: Bool = false
 
     fileprivate var searchQuery: String = .empty
     fileprivate(set) var queryInvalidSymbols: String = .empty
-    
+
     fileprivate(set) var searchEngineRequestState = RequestState()
+
+    private var selectionHistoryCityIds = [Int]()
 
     @Shared fileprivate(set) var sharedData: CitySelectionSharedData
 
     // ignored
+    @Shared fileprivate(set) var historyData: CitySelectionHistoryData
     @Shared fileprivate(set) var listData: CitySelectionListData
     fileprivate(set) var mapCityIds = Set<Int>()
 
@@ -54,23 +56,35 @@ public struct CitySelectionFeature {
     private(set) var searchEngine = CitySearchEngine()
 
     var cities: [City] { searchEngine.cities }
-    
+
+    private(set) var list: CitySelectionListFeature.State
+    private(set) var history: CitySelectionHistoryFeature.State
+
     public init() {
-      _selectedCityId = Shared(value: nil)
-      _listData = Shared(value: CitySelectionListData())
-      _sharedData = Shared(value: CitySelectionSharedData())
+      let historyData = Shared(value: CitySelectionHistoryData())
+      let listData = Shared(value: CitySelectionListData())
+      let sharedData = Shared(value: CitySelectionSharedData())
+
+      _historyData = historyData
+      _listData = listData
+      _sharedData = sharedData
+
+      history = .init(
+        historyData: historyData,
+        sharedData: sharedData
+      )
+      list = .init(
+        listData: listData,
+        sharedData: sharedData
+      )
     }
     
     func city(id: Int) -> City? {
       cities[safe: id]
     }
     
-    func isFoundNothing() -> Bool {
-      mapCityIds.isEmpty && !searchQuery.isEmpty
-    }
-
     func isNeedSelectCity() -> Bool {
-      selectedCityId == nil
+      sharedData.selectedCityId == nil
     }
    
     fileprivate func isNeedRequestSearchEngine() -> Bool {
@@ -87,7 +101,7 @@ public struct CitySelectionFeature {
       selectionHistoryCityIds: [Int],
       isLocationServiceAuthorized: Bool
     ) {
-      $selectedCityId.withLock { $0 = selectedCityId }
+      $sharedData.withLock { $0.selectedCityId = selectedCityId }
       setSelectionHistoryCityIds(selectionHistoryCityIds)
       
       isWantUserCoordinate = isLocationServiceAuthorized
@@ -120,22 +134,23 @@ public struct CitySelectionFeature {
 
     mutating fileprivate func setSearchEngine(_ engine: CitySearchEngine) {
       searchEngine = engine
-      updateVisibleSelectionHistoryCities()
+      updateVisibleSelectionHistoryCityIds()
     }
-    
+
     // MARK: Selection history support
     mutating fileprivate func setSelectionHistoryCityIds(_ ids: [Int]) {
       selectionHistoryCityIds = ids
-      updateVisibleSelectionHistoryCities()
+      updateVisibleSelectionHistoryCityIds()
     }
     
-    mutating fileprivate func updateVisibleSelectionHistoryCities() {
-      let visibleCities = selectionHistoryCityIds
-        .compactMap { id -> City? in
-          guard id != selectedCityId else { return nil }
-          return city(id: id)
-        }
-      $listData.withLock { $0.selectionHistoryCities = visibleCities }
+    mutating fileprivate func updateVisibleSelectionHistoryCityIds() {
+      let selectedCityId = sharedData.selectedCityId
+      let cityIds = selectionHistoryCityIds.withRemovedFirst(
+        where: { $0 == selectedCityId }
+      )
+      let isVisible = !cityIds.isEmpty
+      $historyData.withLock { $0.cityIds = cityIds }
+      $sharedData.withLock { $0.layout.isSelectionHistoryVisible = isVisible }
     }
 
     // MARK: Toast support
@@ -158,8 +173,7 @@ public struct CitySelectionFeature {
 
     /// Equatable
     public static func == (lhs: State, rhs: State) -> Bool {
-      lhs.selectedCityId == rhs.selectedCityId
-      && lhs.selectionHistoryCityIds == rhs.selectionHistoryCityIds
+      lhs.selectionHistoryCityIds == rhs.selectionHistoryCityIds
       && lhs.isSearchFocused == rhs.isSearchFocused
       && lhs.searchQuery == rhs.searchQuery
       && lhs.searchEngineRequestState == rhs.searchEngineRequestState
@@ -173,10 +187,14 @@ public struct CitySelectionFeature {
     case binding(BindingAction<State>)
     
     case changeLocationServiceAuthorizationStatus(CLAuthorizationStatus)
+    case changeSelectedCityId(Int?)
     case changeSelectionHistoryCityIds([Int])
-    
+
     case hideQueryWarningToast
-    
+
+    case history(CitySelectionHistoryAction)
+    case list(CitySelectionListAction)
+
     case networkAvailable
     
     case onAppear
@@ -184,16 +202,12 @@ public struct CitySelectionFeature {
     case receiveNearestCity(City)
     case receiveSearchValidation(CitySearchValidationResult)
 
-    case removeCityIdFromSelectionHistory(Int)
-    
     case responseSearch(CitySearchResponse)
     case responseSearchEngine(RequestResult<CitySearchEngine>)
     case responseUserCoordinate(Result<Coordinate, LocationServiceError>)
     
-    case tapDefineUserLocation
     case tapRequestSearchEngine
     
-    case toastAction(CityToastAction)
     case toastExpirationTick
     
     public enum Alert: Int, Equatable, Sendable {
@@ -237,28 +251,28 @@ public struct CitySelectionFeature {
           if !state.isSearchFocused {
             result = .send(.hideQueryWarningToast)
           }
-          
-        case \.selectedCityId:
-          if let cityId = state.selectedCityId {
-            state.removeToast(item: .citySelectionRequired)
 
-            if let city = state.city(id: cityId) {
-              let interactor = self.interactor
-              Task.onMainActor { interactor.selectCity(city) }
-            }
-          }
-          
         default:
           break
         }
-        
+
       case let .changeLocationServiceAuthorizationStatus(status):
         if status.isAuthorized && state.isNeedRequestUserCoordinate() {
           result = requestUserCoordinateEffect(state: &state)
         } else {
           state.isWantUserCoordinate = false
         }
-        
+
+      case let .changeSelectedCityId(id):
+        if let id {
+          state.removeToast(item: .citySelectionRequired)
+
+          if let city = state.city(id: id) {
+            let interactor = self.interactor
+            Task.onMainActor { interactor.selectCity(city) }
+          }
+        }
+
       case let .changeSelectionHistoryCityIds(ids):
         state.setSelectionHistoryCityIds(ids)
         
@@ -266,7 +280,32 @@ public struct CitySelectionFeature {
         state.queryInvalidSymbols = .empty
         
         result = .cancel(id: CancelId.debounceQueryWarningTimeout)
-        
+
+      case let .history(historyAction):
+        switch historyAction {
+        case let .delegate(delegateAction):
+          switch delegateAction {
+          case let .removeCityIdFromSelectionHistory(id):
+            let interactor = self.interactor
+            Task.onMainActor { interactor.removeCityIdFromSelectionHistory(id) }
+          }
+        }
+
+      case let .list(listAction):
+        switch listAction {
+        case let .delegate(delegateAction):
+          switch delegateAction {
+          case .focusSearch:
+            state.isSearchFocused = true
+
+          case .tapDefineUserLocation:
+            result = onTapDefineUserLocation(state: &state)
+
+          case let .toastAction(toastAction):
+            result = onToastAction(toastAction, state: &state)
+          }
+        }
+
       case .networkAvailable:
         if state.searchEngineRequestState.isRetryableError() {
           result = requestSearchEngineEffect(state: &state)
@@ -296,6 +335,7 @@ public struct CitySelectionFeature {
           effects += [
             locationServiceAuthorizationStatusStreamEffect(),
             networkAvailabilityStreamEffect(),
+            observeSelectionCityIdEffect(sharedData: state.$sharedData),
             selectionHistoryCityIdsStreamEffect()
           ]
         }
@@ -339,16 +379,10 @@ public struct CitySelectionFeature {
         if !effects.isEmpty {
           result = .merge(effects)
         }
-        
-      case let .removeCityIdFromSelectionHistory(id):
-        let interactor = self.interactor
-        Task.onMainActor { interactor.removeCityIdFromSelectionHistory(id) }
-        
+
       case let .responseSearch(response):
         if state.searchQuery == response.query {
-          state.$listData.withLock {
-            $0.sections = response.result.listSections
-          }
+          state.$listData.withLock { $0.applyResponse(response) }
           state.mapCityIds = response.result.mapIds
         }
         
@@ -357,9 +391,11 @@ public struct CitySelectionFeature {
         case let .success(value):
           state.searchEngineRequestState = .default
           state.setSearchEngine(value)
+          state.$historyData.withLock { $0.allCities = value.cities }
+          state.$listData.withLock { $0.allCities = value.cities }
           // FIXME: big animation lag on launching app first time after install...
           state.isSearchFocused = true
-          
+
           result = .merge([
             fetchSearchResultEffect(state: &state),
             fetchNearestCityEffect(state: &state)
@@ -373,26 +409,9 @@ public struct CitySelectionFeature {
         state.receiveUserCoordinateResponse(response)
         result = fetchNearestCityEffect(state: &state, isWantUpdate: true)
         
-      case .tapDefineUserLocation:
-        state.isWantUserCoordinate = true
-        
-        let isLocationServiceDenied = locationServiceAuthorizationStatus().isDenied
-        if isLocationServiceDenied {
-          state.alert = .openApplicationSettings
-        } else if state.isNeedRequestUserCoordinate() {
-          result = requestUserCoordinateEffect(state: &state)
-        }
-        
       case .tapRequestSearchEngine:
         if state.isNeedRequestSearchEngine() {
           result = requestSearchEngineEffect(state: &state)
-        }
-        
-      case let .toastAction(action):
-        switch action {
-        case let .removeItem(toastItem):
-          state.removeToast(item: toastItem)
-          result = toastExpirationTimerEffect(state: &state)
         }
         
       case .toastExpirationTick:
@@ -401,6 +420,32 @@ public struct CitySelectionFeature {
       return result
     }
     .ifLet(\.$alert, action: \.alert)
+  }
+
+  private func onTapDefineUserLocation(state: inout State) -> Effect<Action> {
+    state.isWantUserCoordinate = true
+
+    var result: Effect<Action> = .none
+    let isLocationServiceDenied = locationServiceAuthorizationStatus().isDenied
+    if isLocationServiceDenied {
+      state.alert = .openApplicationSettings
+    } else if state.isNeedRequestUserCoordinate() {
+      result = requestUserCoordinateEffect(state: &state)
+    }
+    return result
+  }
+
+  private func onToastAction(
+    _ action: CityToastAction,
+    state: inout State
+  ) -> Effect<Action> {
+    let result: Effect<Action>
+    switch action {
+    case let .removeItem(toastItem):
+      state.removeToast(item: toastItem)
+      result = toastExpirationTimerEffect(state: &state)
+    }
+    return result
   }
 
   private func locationServiceAuthorizationStatus() -> CLAuthorizationStatus {
@@ -506,7 +551,21 @@ public struct CitySelectionFeature {
       }
     }
   }
-  
+
+  private func observeSelectionCityIdEffect(
+    sharedData: Shared<CitySelectionSharedData>
+  ) -> Effect<Action> {
+    .run { send in
+      let selectedCityIdPublisher = sharedData.publisher
+        .map { $0.selectedCityId }
+        .removeDuplicates()
+        .values
+      for await id in selectedCityIdPublisher {
+        await send(.changeSelectedCityId(id))
+      }
+    }
+  }
+
   private func requestSearchEngineEffect(state: inout State) -> Effect<Action> {
     state.searchEngineRequestState = .loading
     

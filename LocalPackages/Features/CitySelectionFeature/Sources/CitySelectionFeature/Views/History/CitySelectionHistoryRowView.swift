@@ -31,7 +31,6 @@ struct CitySelectionHistoryRowView: View {
   
   var body: some View {
     let id = city.id
-    let isSelected = selectedCityId == id
     let padding = EdgeInsets.cityCell.with(trailing: 0)
 
     ZStack {
@@ -40,7 +39,7 @@ struct CitySelectionHistoryRowView: View {
       HStack {
         CityContentView(
           city: city,
-          isSelected: isSelected,
+          isSelected: false,
           userCoordinate: userCoordinate
         )
         .animation(animation, value: selectedCityId)

@@ -15,6 +15,7 @@ let package = Package(
   dependencies: [
     .package(path: "../LocationService"),
     .package(path: "../NetworkClient"),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
   ],
   targets: [
     .target(
@@ -22,6 +23,7 @@ let package = Package(
       dependencies: [
         .product(name: "LocationService", package: "LocationService"),
         .product(name: "NetworkClient", package: "NetworkClient"),
+        .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
       ]
     ),
     .testTarget(

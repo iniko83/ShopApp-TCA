@@ -1,5 +1,5 @@
 //
-//  CitySelectionHistoryView.swift
+//  CitySelectionHistoryListView.swift
 //  CitySelectionFeature
 //
 //  Created by Igor Nikolaev on 04.07.2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 import Utility
 
-struct CitySelectionHistoryView: View {
+struct CitySelectionHistoryListView: View {
   @Binding var selectedCityId: Int?
   let cities: [City]
   let userCoordinate: Coordinate?
@@ -86,7 +86,7 @@ struct CitySelectionHistoryView: View {
           MainButtonStyle(style: .blue, shape: .capsule)
         )
         
-        CitySelectionHistoryView(
+        CitySelectionHistoryListView(
           selectedCityId: $selectedCityId,
           cities: cities,
           onRemoveCityId: removeCity
