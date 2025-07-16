@@ -12,6 +12,8 @@ import Utility
 struct CitySelectionHistoryView: View {
   let store: StoreOf<CitySelectionHistoryFeature>
 
+  @State private var animated = false
+
   public init(store: StoreOf<CitySelectionHistoryFeature>) {
     self.store = store
   }
@@ -34,11 +36,15 @@ struct CitySelectionHistoryView: View {
 
       Spacer()
     }
-    .animation(.smooth, value: historyHeight)
     .frame(maxWidth: .infinity)
-    .animation(.smooth, value: isListVisible)
     .verticalGradientMaskWithPaddings(top: height)
-    .animation(.smooth, value: height)
+    .if(animated) { content in
+      content
+        .animation(.smooth, value: historyHeight)
+        .animation(.smooth, value: isListVisible)
+        .animation(.smooth, value: height)
+    }
+    .onAppear { animated = true }
   }
 
   @ViewBuilder private func ListView() -> some View {

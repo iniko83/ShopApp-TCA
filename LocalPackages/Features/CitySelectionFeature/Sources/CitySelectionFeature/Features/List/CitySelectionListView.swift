@@ -15,6 +15,8 @@ import Utility
 struct CitySelectionListView: View {
   let store: StoreOf<CitySelectionListFeature>
 
+  @State private var animated = false
+
   @State private var isKeyboardShown = false
 
   @State private var bottomPanelFrames = Frames()
@@ -32,6 +34,7 @@ struct CitySelectionListView: View {
       BottomToastPanelView()
       BottomNearestCityView()
     }
+    .onAppear { animated = true }
   }
 
   @ViewBuilder private func BottomNearestCityView() -> some View {
@@ -73,7 +76,7 @@ struct CitySelectionListView: View {
       )
       .padding(.bottom)
       .padding(.bottom, offset)
-      .animation(.spring(.keyboard), value: offset)
+      .if(animated) { $0.animation(.spring(.keyboard), value: offset) }
     }
   }
 
@@ -98,12 +101,12 @@ struct CitySelectionListView: View {
         CitiesView(listTopPadding: topPadding)
       }
     }
-    .animation(.smooth, value: isFoundNothing)
     .onGeometryChange(
       for: Bool.self,
       of: { $0.safeAreaInsets.bottom > 100 },
       action: { isKeyboardShown = $0 }
     )
+    .if(animated) { $0.animation(.smooth, value: isFoundNothing) }
   }
 
   @ViewBuilder private func CitiesView(listTopPadding: CGFloat) -> some View {
@@ -116,7 +119,7 @@ struct CitySelectionListView: View {
       insets: scrollInsets()
     )
     .padding(.top, topPadding)
-    .animation(.smooth, value: topPadding)
+    .if(animated) { $0.animation(.smooth, value: topPadding) }
     .scrollClipDisabled()
   }
 
