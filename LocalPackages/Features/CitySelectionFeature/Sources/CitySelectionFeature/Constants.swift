@@ -10,6 +10,7 @@ import Utility
 
 typealias ListSection = CitySelectionListSection
 typealias Toast = CitySelectionToast
+typealias ToastAction = CitySelectionToastAction
 typealias ToastItem = CitySelectionToastItem
 
 extension Animation {

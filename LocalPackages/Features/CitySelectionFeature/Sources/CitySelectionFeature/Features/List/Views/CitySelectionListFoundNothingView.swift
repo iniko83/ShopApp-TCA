@@ -1,5 +1,5 @@
 //
-//  CitySearchEmptyView.swift
+//  CitySelectionListFoundNothingView.swift
 //  CitySelectionFeature
 //
 //  Created by Igor Nikolaev on 11.07.2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 import Utility
 
-struct CitySearchEmptyView: View {
+struct CitySelectionListFoundNothingView: View {
   let onTap: () -> Void
 
   var body: some View {
@@ -28,6 +28,6 @@ struct CitySearchEmptyView: View {
 
 
 #Preview {
-  CitySearchEmptyView(onTap: {})
+  CitySelectionListFoundNothingView(onTap: {})
     .ignoresSafeArea()
 }

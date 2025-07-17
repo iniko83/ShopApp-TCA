@@ -1,5 +1,5 @@
 //
-//  CityToastListView.swift
+//  CitySelectionToastListView.swift
 //  CitySelectionFeature
 //
 //  Created by Igor Nikolaev on 01.07.2025.
@@ -8,15 +8,15 @@
 import SwiftUI
 import Utility
 
-public enum CityToastAction {
+public enum CitySelectionToastAction {
   case removeItem(CitySelectionToastItem)
 }
 
-struct CityToastListView: View {
+struct CitySelectionToastListView: View {
   @State private var contentHeight: CGFloat = 1
   let toasts: [Toast]
-  let onAction: (CityToastAction) -> Void
-  
+  let onAction: (ToastAction) -> Void
+
   var body: some View {
     let maximumHeight: CGFloat = 150
     let scrollVerticalInset: CGFloat = 12

@@ -437,7 +437,7 @@ public struct CitySelectionFeature {
   }
 
   private func onToastAction(
-    _ action: CityToastAction,
+    _ action: ToastAction,
     state: inout State
   ) -> Effect<Action> {
     let result: Effect<Action>

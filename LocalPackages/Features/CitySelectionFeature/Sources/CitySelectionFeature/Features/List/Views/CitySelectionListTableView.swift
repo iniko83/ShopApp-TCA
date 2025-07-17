@@ -1,5 +1,5 @@
 //
-//  CityListView.swift
+//  CitySelectionListTableView.swift
 //  CitySelectionFeature
 //
 //  Created by Igor Nikolaev on 19.06.2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 import Utility
 
-struct CityListView: View {
+struct CitySelectionListTableView: View {
   @Binding var selectedCityId: Int?
   @State private var scrollPositionCityId: Int?
 
@@ -57,7 +57,7 @@ struct CityListView: View {
   }
 
   @ViewBuilder private func RowView(city: City) -> some View {
-    CityRowView(
+    CitySelectionRowView(
       selectedCityId: $selectedCityId,
       city: city,
       userCoordinate: userCoordinate

@@ -176,7 +176,7 @@ public struct CitySelectionView: View {
       
       VStack {
         if isShowQueryToast {
-          CityQueryToastView(
+          CitySelectionQueryToastView(
             invalidSymbols: invalidSymbols,
             onClose: { store.send(.hideQueryWarningToast) }
           )

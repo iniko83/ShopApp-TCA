@@ -1,5 +1,5 @@
 //
-//  CityRowView.swift
+//  CitySelectionRowView.swift
 //  CitySelectionFeature
 //
 //  Created by Igor Nikolaev on 21.06.2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 import Utility
 
-struct CityRowView: View {
+struct CitySelectionRowView: View {
   @Binding var selectedCityId: Int?
   let city: City
   let userCoordinate: Coordinate?
@@ -82,7 +82,7 @@ struct CityRowView: View {
         
         LazyVStack(spacing: 2) {
           ForEach(cities, id: \.id) { city in
-            CityRowView(
+            CitySelectionRowView(
               selectedCityId: $selectedCityId,
               city: city,
               userCoordinate: userLocationCity?.coordinate

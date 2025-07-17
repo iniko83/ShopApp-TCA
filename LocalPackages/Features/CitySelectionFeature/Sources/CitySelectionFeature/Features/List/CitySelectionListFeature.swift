@@ -39,6 +39,6 @@ public enum CitySelectionListAction {
     case changeSelectedCityId(Int?)
     case focusSearch
     case tapDefineUserLocation
-    case toastAction(CityToastAction)
+    case toastAction(CitySelectionToastAction)
   }
 }

@@ -28,7 +28,7 @@ struct CitySelectionListView: View {
 
   public var body: some View {
     ZStack(alignment: .top) {
-      CitiesPanelView()
+      CitiesView()
       EdgeEffectView()
 
       BottomToastPanelView()
@@ -70,7 +70,7 @@ struct CitySelectionListView: View {
     VStack(spacing: 0) {
       Spacer()
 
-      CityToastListView(
+      CitySelectionToastListView(
         toasts: store.state.sharedData.toast.list,
         onAction: { store.send(.delegate(.toastAction($0))) }
       )
@@ -80,25 +80,15 @@ struct CitySelectionListView: View {
     }
   }
 
-  @ViewBuilder private func CitiesEmptyView(topPadding: CGFloat) -> some View {
-    CitySearchEmptyView(
-      onTap: { store.send(.delegate(.focusSearch)) }
-    )
-    .verticalGradientMaskWithPaddings(top: 24)
-    .padding(.top, topPadding)
-    .animation(.smooth, value: topPadding)
-    .ignoresSafeArea(.container, edges: .bottom)
-  }
-
-  @ViewBuilder private func CitiesPanelView() -> some View {
+  @ViewBuilder private func CitiesView() -> some View {
     let isFoundNothing = store.state.listData.isFoundNothing
     let topPadding = store.state.sharedData.layout.listTopPadding()
 
     ZStack(alignment: .top) {
       if isFoundNothing {
-        CitiesEmptyView(topPadding: topPadding)
+        FoundNothingView(topPadding: topPadding)
       } else {
-        CitiesView(listTopPadding: topPadding)
+        TableView(topPadding: topPadding)
       }
     }
     .onGeometryChange(
@@ -107,20 +97,6 @@ struct CitySelectionListView: View {
       action: { isKeyboardShown = $0 }
     )
     .if(animated) { $0.animation(.smooth, value: isFoundNothing) }
-  }
-
-  @ViewBuilder private func CitiesView(listTopPadding: CGFloat) -> some View {
-    let topPadding = listTopPadding - .scrollAdditionalTopPadding
-
-    CityListView(
-      selectedCityId: bindingSelectedCityId(),
-      sections: store.state.listData.sections,
-      userCoordinate: store.state.sharedData.locationRelated.userCoordinate,
-      insets: scrollInsets()
-    )
-    .padding(.top, topPadding)
-    .if(animated) { $0.animation(.smooth, value: topPadding) }
-    .scrollClipDisabled()
   }
 
   @ViewBuilder private func EdgeEffectView() -> some View {
@@ -135,6 +111,40 @@ struct CitySelectionListView: View {
       )
       .allowsHitTesting(false)
       .ignoresSafeArea()
+  }
+
+  @ViewBuilder private func FoundNothingView(topPadding: CGFloat) -> some View {
+    CitySelectionListFoundNothingView(
+      onTap: { store.send(.delegate(.focusSearch)) }
+    )
+    .verticalGradientMaskWithPaddings(top: 24)
+    .padding(.top, topPadding)
+    .animation(.smooth, value: topPadding)
+    .ignoresSafeArea(.container, edges: .bottom)
+  }
+
+  @ViewBuilder private func TableView(topPadding: CGFloat) -> some View {
+    let finalTopPadding = topPadding - .scrollAdditionalTopPadding
+
+    CitySelectionListTableView(
+      selectedCityId: bindingSelectedCityId(),
+      sections: store.state.listData.sections,
+      userCoordinate: store.state.sharedData.locationRelated.userCoordinate,
+      insets: scrollInsets()
+    )
+    .padding(.top, finalTopPadding)
+    .if(animated) { $0.animation(.smooth, value: finalTopPadding) }
+    .scrollClipDisabled()
+  }
+
+  private func bindingSelectedCityId() -> Binding<Int?> {
+    .init(
+      get: { store.sharedData.selectedCityId },
+      set: { cityId in
+        guard store.sharedData.selectedCityId != cityId else { return }
+        store.send(.delegate(.changeSelectedCityId(cityId)))
+      }
+    )
   }
 
   private func edgeEffectScrollConfiguration() -> EdgeEffect.ScrollConfiguration {
@@ -157,16 +167,6 @@ struct CitySelectionListView: View {
         height: bottomHeight,
         thresholdLocation: thresholdLocation
       )
-    )
-  }
-
-  private func bindingSelectedCityId() -> Binding<Int?> {
-    .init(
-      get: { store.sharedData.selectedCityId },
-      set: { cityId in
-        guard store.sharedData.selectedCityId != cityId else { return }
-        store.send(.delegate(.changeSelectedCityId(cityId)))
-      }
     )
   }
 

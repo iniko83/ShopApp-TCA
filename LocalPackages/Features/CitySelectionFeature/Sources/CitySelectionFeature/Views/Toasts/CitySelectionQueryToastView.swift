@@ -1,5 +1,5 @@
 //
-//  CityQueryToastView.swift
+//  CitySelectionQueryToastView.swift
 //  CitySelectionFeature
 //
 //  Created by Igor Nikolaev on 25.06.2025.
@@ -8,7 +8,7 @@
 import SwiftUI
 import Utility
 
-struct CityQueryToastView: View {
+struct CitySelectionQueryToastView: View {
   let invalidSymbols: String
   let onClose: () -> Void
   
