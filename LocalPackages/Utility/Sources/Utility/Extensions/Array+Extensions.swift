@@ -7,7 +7,7 @@
 
 extension Array {
   public subscript(safe index: Index) -> Element? {
-    index < count ? self[index] : nil
+    index < count && index >= 0 ? self[index] : nil
   }
 }
 

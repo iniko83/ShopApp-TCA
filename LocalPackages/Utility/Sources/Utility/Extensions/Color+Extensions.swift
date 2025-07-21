@@ -101,6 +101,15 @@ extension Color {
   }
 }
 
+extension Color: Interpolatable {
+  public func interpolate(to color: Color, progress: Double) -> Self {
+    let from = UIColor(self)
+    let to = UIColor(color)
+    let uiColor = from.interpolate(to: to, progress: progress)
+    return Color(uiColor)
+  }
+}
+
 
 /// Constants
 private extension Double {

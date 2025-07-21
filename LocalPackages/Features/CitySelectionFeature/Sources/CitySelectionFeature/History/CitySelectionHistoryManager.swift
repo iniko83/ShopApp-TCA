@@ -13,10 +13,7 @@ import Foundation
 struct CitySelectionHistoryManager: Sendable {
   let ids: @MainActor @Sendable () -> [Int]
   let idsStream: @Sendable () -> AsyncStream<[Int]>
-
-  let insertId: @MainActor @Sendable (Int) -> Void
-  let removeId: @MainActor @Sendable (Int) -> Void
-  let reset: @MainActor @Sendable () -> Void
+  let performAction: @MainActor @Sendable (CitySelectionHistoryService.Action) -> Void
 }
 
 extension CitySelectionHistoryManager: DependencyKey {
@@ -47,9 +44,7 @@ extension CitySelectionHistoryManager: DependencyKey {
     return .init(
       ids: service.cityIds,
       idsStream: service.cityIdsStream,
-      insertId: { id in service.appendCityId(id) },
-      removeId: { id in service.removeCityId(id) },
-      reset: service.reset
+      performAction: { action in service.performAction(action) }
     )
   }
   
@@ -59,9 +54,7 @@ extension CitySelectionHistoryManager: DependencyKey {
     return .init(
       ids: service.cityIds,
       idsStream: service.cityIdsStream,
-      insertId: { id in service.appendCityId(id) },
-      removeId: { id in service.removeCityId(id) },
-      reset: service.reset
+      performAction: { action in service.performAction(action) }
     )
   }
 }

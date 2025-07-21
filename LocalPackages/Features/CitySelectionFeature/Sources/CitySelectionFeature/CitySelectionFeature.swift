@@ -11,6 +11,8 @@ import NetworkClient
 import NetworkConnectionService
 import Utility
 
+// FIXME: after split bottom panel into feature refactoring names & folder hierarchy
+
 @Reducer
 public struct CitySelectionFeature {
   @Dependency(\.mainQueue) var mainQueue
@@ -98,7 +100,8 @@ public struct CitySelectionFeature {
       isWantUserCoordinate = isLocationServiceAuthorized
 
       if isNeedSelectCity() {
-        sharedData.toast.list = [Toast(item: .citySelectionRequired)]
+        let toast = Toast(item: .citySelectionRequired)
+        displayToast(toast)
       }
       
       isInitialized = true
@@ -142,16 +145,11 @@ public struct CitySelectionFeature {
     }
 
     // MARK: Toast support
-    mutating fileprivate func displayToastNearestCityFailure() {
-      sharedData.toast.displayToast(
-        Toast(
-          item: .nearestCityFetchFailure,
-          timeoutStamp: Timestamp.timeout(3)
-        )
-      )
+    mutating fileprivate func displayToast(_ toast: Toast) {
+      sharedData.toast.displayToast(toast)
     }
 
-    mutating fileprivate func removeToast(item: ToastItem) {
+    mutating fileprivate func removeToastItem(_ item: ToastItem) {
       sharedData.toast.removeToast(item: item)
     }
 
@@ -274,8 +272,15 @@ public struct CitySelectionFeature {
             state.sharedData.layout.selectionHistoryHeight = value
 
           case let .removeCityIdFromSelectionHistory(id):
+            if let city = state.city(id: id) {
+              result = displayToastEffect(
+                item: .undoRemoveSelectionHistoryCity(city),
+                state: &state
+              )
+            }
+
             let interactor = self.interactor
-            Task.onMainActor { interactor.removeCityIdFromSelectionHistory(id) }
+            Task.onMainActor { interactor.historyAction(.removeId(id)) }
           }
         }
 
@@ -303,6 +308,8 @@ public struct CitySelectionFeature {
         }
         
       case .onAppear:
+        var effects = [Effect<Action>]()
+
         let isStateUninitialized = !state.isInitialized
         if isStateUninitialized {
           var selectedCityId: Int?
@@ -319,10 +326,7 @@ public struct CitySelectionFeature {
             selectionHistoryCityIds: selectionHistoryCityIds,
             isLocationServiceAuthorized: isLocationServiceAuthorized
           )
-        }
-        
-        var effects = [Effect<Action>]()
-        if isStateUninitialized {
+
           effects += [
             locationServiceAuthorizationStatusStreamEffect(),
             networkAvailabilityStreamEffect(),
@@ -416,7 +420,7 @@ public struct CitySelectionFeature {
     state.sharedData.selectedCityId = id
 
     guard let id else { return }
-    state.removeToast(item: .citySelectionRequired)
+    state.removeToastItem(.citySelectionRequired)
 
     guard let city = state.city(id: id) else { return }
     let interactor = self.interactor
@@ -440,13 +444,27 @@ public struct CitySelectionFeature {
     _ action: ToastAction,
     state: inout State
   ) -> Effect<Action> {
-    let result: Effect<Action>
+    let itemForRemove: ToastItem
     switch action {
-    case let .removeItem(toastItem):
-      state.removeToast(item: toastItem)
-      result = toastExpirationTimerEffect(state: &state)
+    case let .removeItem(item):
+      itemForRemove = item
+
+    case let .undoItem(item):
+      itemForRemove = item
+
+      switch item {
+      case .citySelectionRequired, .nearestCityFetchFailure:
+        break
+
+      case let .undoRemoveSelectionHistoryCity(city):
+        let id = city.id
+        let interactor = self.interactor
+        Task.onMainActor { interactor.historyAction(.insertId(id)) }
+      }
     }
-    return result
+
+    state.removeToastItem(itemForRemove)
+    return toastExpirationTimerEffect(state: &state)
   }
 
   private func locationServiceAuthorizationStatus() -> CLAuthorizationStatus {
@@ -457,6 +475,24 @@ public struct CitySelectionFeature {
       result = authorizationStatus()
     }
     return result
+  }
+
+  private func toastTimeoutStamp(item: ToastItem) -> TimeInterval? {
+    guard let timeout = item.timeout() else { return nil }
+    return Timestamp.timeout(timeout)
+  }
+
+  private func displayToastEffect(
+    item: ToastItem,
+    state: inout State
+  ) -> Effect<Action> {
+    let timeoutStamp = toastTimeoutStamp(item: item)
+    let toast = Toast(item: item, timeoutStamp: timeoutStamp)
+    state.displayToast(toast)
+
+    return timeoutStamp == nil
+      ? .none
+      : toastExpirationTimerEffect(state: &state)
   }
 
   private func fetchNearestCityEffect(
@@ -477,8 +513,7 @@ public struct CitySelectionFeature {
       }
     } else {
       if isWantUpdate {
-        state.displayToastNearestCityFailure()
-        result = toastExpirationTimerEffect(state: &state)
+        result = displayToastEffect(item: .nearestCityFetchFailure, state: &state)
       } else {
         result = .none
       }

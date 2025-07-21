@@ -24,3 +24,8 @@ public extension Color {
 extension EdgeInsets {
   static let cityCell = EdgeInsets(horizontal: 16, vertical: 6)
 }
+
+extension TimeInterval {
+  static let undoTimeout: TimeInterval = 3
+  static let warningTimeout: TimeInterval = 3
+}

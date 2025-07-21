@@ -70,7 +70,7 @@ struct CitySelectionListView: View {
     VStack(spacing: 0) {
       Spacer()
 
-      CitySelectionToastListView(
+      CitySelectionToastsTableView(
         toasts: store.state.sharedData.toast.list,
         onAction: { store.send(.delegate(.toastAction($0))) }
       )

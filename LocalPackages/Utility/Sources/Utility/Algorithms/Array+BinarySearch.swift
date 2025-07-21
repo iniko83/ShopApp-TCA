@@ -27,7 +27,7 @@ extension Array {
     var result = range.upperBound
     var lower = range.lowerBound
     var upper = range.upperBound - 1
-    
+
     while lower <= upper {
       let middle = (lower + upper) >> 1
       let comparisonResult = compare(self[middle])
@@ -57,7 +57,7 @@ extension Array {
     var result = range.upperBound
     var lower = range.lowerBound
     var upper = range.upperBound - 1
-        
+
     while lower <= upper {
       let middle = (lower + upper) >> 1
       let comparisonResult = compare(self[middle])

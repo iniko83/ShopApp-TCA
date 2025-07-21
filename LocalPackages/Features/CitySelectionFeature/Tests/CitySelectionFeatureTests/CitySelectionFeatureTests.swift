@@ -20,7 +20,7 @@ import Utility
 
     let engine = CitySearchEngine(cities: cities)
     
-    let expectations: [CitySearchExpectation] = [
+    let testVariants: [CitySearchTestVariant] = [
       .init(searchQuery: "москва", cityIds: [6]),
       .init(searchQuery: "краснознаменск", cityIds: [585, 586]),
       .init(
@@ -34,17 +34,17 @@ import Utility
       .init(searchQuery: "ололо", cityIds: [])
     ]
     
-    for expectation in expectations {
-      let searchResult = await engine.search(unemptyQuery: expectation.searchQuery)
-      let cityIds = searchResult.sections
-        .map { $0.ids }
+    for variant in testVariants {
+      let searchResult = await engine.search(unemptyQuery: variant.searchQuery)
+      let cityIds = searchResult.listSections
+        .map { $0.cities.map(\.id) }
         .flatMap { $0 }
-      #expect(cityIds == expectation.cityIds)
+      #expect(cityIds == variant.cityIds)
     }
   }
   
-  fileprivate struct CitySearchExpectation {
-    let searchQuery: String   // lowercased with spaces
-    let cityIds: [Int]
+  fileprivate struct CitySearchTestVariant {
+    let searchQuery: String // lowercased with spaces
+    let cityIds: [Int]      // expected
   }
 }

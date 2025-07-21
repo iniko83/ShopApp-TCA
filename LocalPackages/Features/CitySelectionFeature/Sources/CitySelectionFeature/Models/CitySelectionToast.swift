@@ -6,11 +6,15 @@
 //
 
 import Foundation
+import Utility
 
-struct CitySelectionToast: Equatable {
+struct CitySelectionToast: Equatable, Identifiable {
   let item: CitySelectionToastItem
   let timeoutStamp: TimeInterval?
-  
+
+  /// Identifiable
+  var id: Int { item.id }
+
   init(
     item: CitySelectionToastItem,
     timeoutStamp: TimeInterval? = nil
@@ -20,7 +24,42 @@ struct CitySelectionToast: Equatable {
   }
 }
 
-public enum CitySelectionToastItem: Hashable {
+public enum CitySelectionToastItem {
   case citySelectionRequired
   case nearestCityFetchFailure
+  case undoRemoveSelectionHistoryCity(City)
+
+  public func timeout() -> TimeInterval? {
+    let result: TimeInterval?
+    switch self {
+    case .citySelectionRequired:
+      result = nil
+    case .nearestCityFetchFailure:
+      result = .warningTimeout
+    case .undoRemoveSelectionHistoryCity:
+      result = .undoTimeout
+    }
+    return result
+  }
+}
+
+extension CitySelectionToastItem: Hashable {
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
+extension CitySelectionToastItem: Identifiable {
+  public var id: Int {
+    let result: Int
+    switch self {
+    case .citySelectionRequired:
+      result = -2
+    case .nearestCityFetchFailure:
+      result = -1
+    case let .undoRemoveSelectionHistoryCity(city):
+      result = city.id
+    }
+    return result
+  }
 }

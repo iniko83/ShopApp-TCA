@@ -18,7 +18,7 @@ public extension Color {
 
   static let mainAccent = Color.dynamicRgbHex(dark: 0xe3546d, light: 0xf8395a)
   static let mainBackground = Color.dynamicRgbHex(dark: 0x2181ff, light: 0x4392f9)
-  
+
   /// used for buttons, with .clear would be pressed only near visible content (not by edges)
   static let transparent = Color(white: 0, opacity: 0.00001)
 }

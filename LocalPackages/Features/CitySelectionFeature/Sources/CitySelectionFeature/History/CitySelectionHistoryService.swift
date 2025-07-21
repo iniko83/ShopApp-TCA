@@ -10,7 +10,15 @@ import os.lock
 
 import Utility
 
-enum CitySelectionHistoryService {
+public enum CitySelectionHistoryService {
+  public enum Action {
+    case insertId(Int)
+    case removeId(Int)
+    case reset
+  }
+}
+
+extension CitySelectionHistoryService {
   struct ProtectedData {
     var continuationsByIds = [UUID: AsyncStream<[Int]>.Continuation]()
   }
@@ -35,17 +43,7 @@ final class CitySelectionHistoryStorageService: @unchecked Sendable {
       limit: cityIdsLimit
     )
   }
-  
-  @MainActor
-  func appendCityId(_ id: Int) {
-    let oldIds = cityIds()
-    cityIdsList.insertItem(id)
-    
-    let ids = cityIds()
-    guard oldIds != ids else { return }
-    onChangeCityIds(ids)
-  }
-  
+
   @MainActor
   func cityIds() -> [Int] {
     cityIdsList.items
@@ -66,20 +64,25 @@ final class CitySelectionHistoryStorageService: @unchecked Sendable {
       }
     }
   }
-  
+
   @MainActor
-  func removeCityId(_ id: Int) {
-    cityIdsList.removeItem(id)
-    let ids = cityIdsList.items
+  func performAction(_ action: CitySelectionHistoryService.Action) {
+    let oldIds = cityIds()
+
+    switch action {
+    case let .insertId(id):
+      cityIdsList.insertItem(id)
+    case let .removeId(id):
+      cityIdsList.removeItem(id)
+    case .reset:
+      cityIdsList.removeAll()
+    }
+
+    let ids = cityIds()
+    guard oldIds != ids else { return }
     onChangeCityIds(ids)
   }
-  
-  @MainActor
-  func reset() {
-    cityIdsList.removeAll()
-    onChangeCityIds([])
-  }
-  
+
   @MainActor
   private func onChangeCityIds(_ ids: [Int]) {
     // store
@@ -114,16 +117,6 @@ final class CitySelectionHistoryMemoryService: @unchecked Sendable {
   }
   
   @MainActor
-  func appendCityId(_ id: Int) {
-    let oldIds = cityIds()
-    cityIdsList.insertItem(id)
-    
-    let ids = cityIds()
-    guard oldIds != ids else { return }
-    onChangeCityIds(ids)
-  }
-  
-  @MainActor
   func cityIds() -> [Int] {
     cityIdsList.items
   }
@@ -143,20 +136,25 @@ final class CitySelectionHistoryMemoryService: @unchecked Sendable {
       }
     }
   }
-  
+
   @MainActor
-  func removeCityId(_ id: Int) {
-    cityIdsList.removeItem(id)
-    let ids = cityIdsList.items
+  func performAction(_ action: CitySelectionHistoryService.Action) {
+    let oldIds = cityIds()
+
+    switch action {
+    case let .insertId(id):
+      cityIdsList.insertItem(id)
+    case let .removeId(id):
+      cityIdsList.removeItem(id)
+    case .reset:
+      cityIdsList.removeAll()
+    }
+
+    let ids = cityIds()
+    guard oldIds != ids else { return }
     onChangeCityIds(ids)
   }
-  
-  @MainActor
-  func reset() {
-    cityIdsList.removeAll()
-    onChangeCityIds([])
-  }
-  
+
   @MainActor
   private func onChangeCityIds(_ ids: [Int]) {
     // notify subscribers

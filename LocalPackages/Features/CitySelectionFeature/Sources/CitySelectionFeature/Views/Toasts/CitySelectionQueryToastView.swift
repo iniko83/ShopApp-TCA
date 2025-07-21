@@ -14,19 +14,14 @@ struct CitySelectionQueryToastView: View {
   
   var body: some View {
     let style = ToastStyle.warning
-    let message = "Удалены недопустимые символы: **\(invalidSymbols)**"
-    
+
     ClosableToastContentView(
       style: style,
       onClose: onClose,
       content: {
         ToastContentView(
           style: style,
-          content: {
-            Text(message.markdown()!)
-              .font(.subheadline)
-              .opacity(0.7)
-          }
+          content: { ContentView() }
         )
       }
     )
@@ -35,5 +30,13 @@ struct CitySelectionQueryToastView: View {
       cornerRadius: 10,
       padding: EdgeInsets(horizontal: 8, vertical: 4)
     )
+  }
+
+  @ViewBuilder private func ContentView() -> some View {
+    let message = "Удалены недопустимые символы: **\(invalidSymbols)**"
+
+    Text(message.markdown()!)
+      .font(.subheadline)
+      .opacity(0.7)
   }
 }

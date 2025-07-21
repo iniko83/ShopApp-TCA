@@ -41,6 +41,25 @@ extension UIColor {
   }
 }
 
+extension UIColor: Interpolatable {
+  public func interpolate(to: UIColor, progress: Double) -> Self {
+    guard
+      let source = cgColor.components,
+      let destination = to.cgColor.components
+    else { return self }
+
+    let components = (0...3)
+      .map { index in
+        source[index].interpolate(to: destination[index], progress: progress)
+      }
+    return Self.init(
+      red: components[0],
+      green: components[1],
+      blue: components[2],
+      alpha: components[3]
+    )
+  }
+}
 
 /// Constants
 private extension CGFloat {
