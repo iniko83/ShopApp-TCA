@@ -30,7 +30,7 @@ struct CitySelectionRowView: View {
     let id = city.id
     let isSelected = selectedCityId == id
     
-    return ZStack {
+    ZStack {
       CellHighlightingButton(action: { selectedCityId = id })
 
       CityContentView(
@@ -41,6 +41,7 @@ struct CitySelectionRowView: View {
       .padding(.cityCell)
       .animation(animation, value: selectedCityId)
     }
+    .background { Color(.systemBackground) }
   }
 }
 
