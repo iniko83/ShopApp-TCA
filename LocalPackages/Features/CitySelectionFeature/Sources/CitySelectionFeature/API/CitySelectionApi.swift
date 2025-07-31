@@ -74,5 +74,5 @@ extension DependencyValues {
 /// Constants
 private extension URL {
   // NOTE: how get path to raw file: [ https://stackoverflow.com/a/78631033 ]
-  static let baseUrl = URL(string: "https://raw.githubusercontent.com/iniko83/ShopApp/develop/ResourcesOnline")!
+  static let baseUrl = URL(string: "https://raw.githubusercontent.com/iniko83/ShopApp-TCA/master/ResourcesOnline/cities.json")!
 }
