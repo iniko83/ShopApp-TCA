@@ -14,7 +14,7 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../Utility"),
-    .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
+    .package(url: "https://github.com/pointfreeco/swift-dependencies", exact: "1.9.2"),
   ],
   targets: [
     .target(

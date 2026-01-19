@@ -19,7 +19,7 @@ let package = Package(
     .package(path: "../../NetworkConnectionService"),
     .package(path: "../../RestClient"),
     .package(path: "../../Utility"),
-    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.0.0"),
+    .package(url: "https://github.com/pointfreeco/swift-composable-architecture", exact: "1.20.2"),
   ],
   targets: [
     .target(
